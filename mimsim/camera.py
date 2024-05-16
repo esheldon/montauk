@@ -26,3 +26,21 @@ def make_dm_detector(detnum):
 
     dm_camera = make_camera()
     return dm_camera[detnum]
+
+
+def get_ccd_vendor(dm_detector):
+    """
+    Get the vendor, E2V or ITL
+
+    Parameters
+    ----------
+    dm_detector: lsst.afw.cameraGeom.Detector
+        Data management detector object.  Use make_dm_detector(detnum)
+        If it is not an E2V, do not apply fringing
+
+    Returns
+    -------
+    vendor: str
+    """
+    serial_number = dm_detector.getSerial()
+    return serial_number[:3]
