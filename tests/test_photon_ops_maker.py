@@ -4,7 +4,7 @@ import pytest
 
 
 @pytest.mark.parametrize('use_dcr', [False, True])
-def test_make_photon_ops(use_dcr):
+def test_photon_ops_maker(use_dcr):
 
     detnum = 91
     dm_detector = mimsim.camera.make_dm_detector(detnum)
@@ -64,4 +64,4 @@ def test_make_photon_ops(use_dcr):
 
 
 if __name__ == '__main__':
-    test_make_photon_ops()
+    test_photon_ops_maker()
