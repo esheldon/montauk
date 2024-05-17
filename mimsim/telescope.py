@@ -28,3 +28,17 @@ def make_detector_telescope(band, rot_tel_pos, dm_detector):
 
     z_offset = det_tel_obj.calculate_z_offset(detname)
     return det_tel_obj.get_telescope(z_offset)
+
+
+def make_pupil_sampler():
+    """
+    get a galsim PupulAnnulusSampler for Rubin
+    """
+    import galsim
+
+    return galsim.PupilAnnulusSampler(
+        R_outer=4.18,
+        # M1 inner diameter is 2.558, but we need a bit of slack for
+        # off-axis rays
+        R_inner=2.55,
+    )

@@ -19,5 +19,19 @@ def test_make_detector_telescope():
     assert telescope.name == 'LSST'
 
 
+def test_pupil_sampler():
+    obsdata = mimsim.simtools.load_example_obsdata()
+
+    pa = galsim.PhotonArray(
+        N=100, wavelength=obsdata['bandpass'].effective_wavelength,
+    )
+
+    time_sampler = galsim.TimeSampler(exptime=30)
+    pupil_sampler = mimsim.telescope.make_pupil_sampler()
+
+    time_sampler.applyTo(pa)
+    pupil_sampler.applyTo(pa)
+
+
 if __name__ == '__main__':
     test_make_detector_telescope()

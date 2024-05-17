@@ -1,7 +1,6 @@
 import galsim
 import imsim
 import mimsim
-import mimsim.simtools
 import numpy as np
 import pytest
 import logging

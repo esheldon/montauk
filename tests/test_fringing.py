@@ -1,6 +1,5 @@
 import galsim
 import mimsim
-import mimsim.simtools
 from mimsim.fringing import should_apply_fringing
 from imsim.sky_model import CCD_Fringing
 import numpy as np
@@ -10,8 +9,6 @@ import pytest
 @pytest.mark.parametrize('band', ['r', 'Y'])
 @pytest.mark.parametrize('detnum', [35, 88])
 def test_fringing(band, detnum):
-
-    seed = 25
 
     obsdata = mimsim.simtools.load_example_obsdata(band=band)
 

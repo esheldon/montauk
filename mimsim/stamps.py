@@ -1,6 +1,3 @@
-from .defaults import MAX_STAMP_SIZE, PIXEL_SCALE
-
-
 def get_stamp_size(obj, flux, noise_var, obsdata):
     """
     Get a good stamp size for the object
@@ -21,6 +18,7 @@ def get_stamp_size(obj, flux, noise_var, obsdata):
     stamp_size: int
     """
     import imsim
+    from .defaults import MAX_STAMP_SIZE, PIXEL_SCALE
 
     obj_achrom = obj.evaluateAtWavelength(
         obsdata['bandpass'].effective_wavelength
