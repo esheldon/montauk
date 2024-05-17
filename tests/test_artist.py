@@ -1,9 +1,11 @@
 import imsim
 import galsim
 import mimsim
+import pytest
 
 
-def test_artist_smoke():
+@pytest.mark.parametrize('flux', [1.e6, 10])
+def test_artist_smoke(flux):
 
     seed = 1221
     gs_rng = galsim.BaseDeviate(seed)
@@ -16,8 +18,8 @@ def test_artist_smoke():
         obsdata=obsdata, dm_detector=dm_detector,
     )
 
-    # image_pos = galsim.PositionD(250.1, 1091.3)
-    # sky_pos = wcs.toWorld(image_pos)
+    image_pos = galsim.PositionD(250.1, 1091.3)
+    sky_pos = wcs.toWorld(image_pos)
 
     dcr = mimsim.dcr.DCRMaker(
         bandpass=obsdata['bandpass'],
@@ -56,12 +58,37 @@ def test_artist_smoke():
         rotTelPos=obsdata['rotTelPos'],
     )
 
-    mimsim.artist.Artist(
+    artist = mimsim.artist.Artist(
         bandpass=obsdata['bandpass'],
         sensor=sensor,
         photon_ops_maker=photon_ops_maker,
         diffraction_fft=diffraction_fft,
         gs_rng=gs_rng,
+    )
+
+    stamp_size = 32
+
+    obj = galsim.Gaussian(fwhm=0.2) * mimsim.seds.get_trivial_sed()
+
+    local_wcs = wcs.local(image_pos)
+
+    psf = galsim.Gaussian(fwhm=0.8)
+    artist.phot_draw(
+        obj=obj,
+        obj_coord=sky_pos,
+        image_pos=image_pos,
+        flux=flux,
+        stamp_size=stamp_size,
+        local_wcs=local_wcs,
+        psf=psf,
+    )
+
+    artist.fft_draw(
+        obj=obj,
+        image_pos=image_pos,
+        stamp_size=stamp_size,
+        local_wcs=local_wcs,
+        psf=psf,
     )
 
 

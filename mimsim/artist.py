@@ -117,28 +117,15 @@ class Artist(object):
         import galsim
 
         prof = galsim.Convolve([obj] + [psf])
-        try:
-            stamp = prof.drawImage(
-                bandpass=self.bandpass,
-                nx=stamp_size, ny=stamp_size,
-                center=image_pos,
-                wcs=local_wcs,
-                method='fft',
-            )
-        except galsim.errors.GalSimFFTSizeError as e:
-            # I think this shouldn't happen with the updates I made to how the
-            # image size is calculated, even for extremely bright things.  So
-            # it should be ok to just report what happened, give some extra
-            # information to diagonose the problem and raise the error.
-            logger = self.logger
-            logger.error('Caught error trying to draw using FFT:')
-            logger.error('%s', e)
-            logger.error('You may need to add a gsparams field with '
-                         'maximum_fft_size to')
-            logger.error('either the psf or gal field to allow larger FFTs.')
-            logger.info('prof = %r', prof)
-            logger.info('fft_image = %s', stamp)
-            raise
+
+        stamp = prof.drawImage(
+            bandpass=self.bandpass,
+            nx=stamp_size, ny=stamp_size,
+            center=image_pos,
+            wcs=local_wcs,
+            method='fft',
+        )
+
         # Some pixels can end up negative from FFT numerics.  Just set them to
         # 0.
         stamp.array[stamp.array < 0] = 0.
