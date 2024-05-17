@@ -6,9 +6,6 @@ import mimsim
 def test_dcr():
 
     detnum = 130
-    seed = 9191
-
-    gs_rng = galsim.BaseDeviate(seed)
 
     obsdata = mimsim.simtools.load_example_obsdata(band='g')
 
