@@ -3,7 +3,7 @@ import galsim
 import mimsim
 
 
-def test_artist():
+def test_artist_smoke():
 
     seed = 1221
     gs_rng = galsim.BaseDeviate(seed)
@@ -66,4 +66,4 @@ def test_artist():
 
 
 if __name__ == '__main__':
-    test_artist()
+    test_artist_smoke()
