@@ -8,4 +8,8 @@ from . import wcs
 from . import sky
 from . import sensor
 from . import tree_rings
+from . import stamps
+from . import seds
 from . import utils
+
+from . import simtools

@@ -4,6 +4,7 @@ import mimsim
 import mimsim.simtools
 import numpy as np
 import pytest
+import logging
 
 
 @pytest.mark.parametrize(
@@ -41,6 +42,8 @@ def test_make_sky(options):
     seed = 31415
     gs_rng = galsim.BaseDeviate(seed)
 
+    logger = logging.getLogger('imsim-runner')
+
     dm_detector = mimsim.camera.make_dm_detector(detnum)
     obsdata = mimsim.simtools.load_example_obsdata()
 
@@ -48,7 +51,7 @@ def test_make_sky(options):
         obsdata=obsdata, dm_detector=dm_detector,
     )
 
-    sky_model = imsim.sky_model.SkyModel(
+    sky_model = imsim.SkyModel(
         exptime=obsdata['exptime'],
         mjd=obsdata['mjd'],
         bandpass=obsdata['bandpass'],
@@ -93,6 +96,7 @@ def test_make_sky(options):
         vignetting=vignetter,
         fringing=fringer,
         sensor=sensor,
+        logger=logger,
     )
 
     test_image = image.copy()
@@ -106,6 +110,9 @@ def test_make_sky(options):
 
     # values will vary due to wcs pixel size variations
     wcs.makeSkyImage(test_image, sky_level)
+
+    print('sky_level:', sky_level)
+    print('med sky image:', np.median(test_image.array[:, :]))
 
     if options['gradient']:
         gradient.apply(test_image)
@@ -163,3 +170,9 @@ def test_gradient():
 
 if __name__ == '__main__':
     test_gradient()
+    test_make_sky({
+        'gradient': False,
+        'fringing': False,
+        'vignetting': False,
+        'sensor_areas': False,
+    })
