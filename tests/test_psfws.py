@@ -33,5 +33,7 @@ def test_psfws():
 
     psf_at_pos = psf.getPSF(image_pos)
     expected_psf_at_pos = expected_psf.getPSF(image_pos)
-
     assert psf_at_pos == expected_psf_at_pos
+
+    eval_psf = mimsim.psf.eval_psf(psf, image_pos)
+    assert eval_psf == expected_psf_at_pos

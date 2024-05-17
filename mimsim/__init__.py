@@ -10,6 +10,7 @@ from . import sensor
 from . import tree_rings
 from . import stamps
 from . import seds
+from . import psf
 from . import psfws
 from . import optics
 from . import dcr
