@@ -20,5 +20,6 @@ from . import artist
 from . import runner
 
 from . import utils
+from . import logging
 
 from . import simtools

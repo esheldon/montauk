@@ -23,12 +23,12 @@ def get_stamp_size(obj, flux, noise_var, obsdata, pixel_scale=PIXEL_SCALE):
     stamp_size: int
     """
     import imsim
-    from .defaults import MAX_STAMP_SIZE
+    from .defaults import MIN_STAMP_SIZE, MAX_STAMP_SIZE
 
     obj_achrom = obj.evaluateAtWavelength(
         obsdata['bandpass'].effective_wavelength
     )
-    return imsim.stamp_utils.get_stamp_size(
+    stamp_size = imsim.stamp_utils.get_stamp_size(
         obj_achrom=obj_achrom,
         nominal_flux=flux,
         noise_var=noise_var,
@@ -38,6 +38,11 @@ def get_stamp_size(obj, flux, noise_var, obsdata, pixel_scale=PIXEL_SCALE):
         Nmax=MAX_STAMP_SIZE,
         pixel_scale=pixel_scale,
     )
+
+    if stamp_size < MIN_STAMP_SIZE:
+        stamp_size = MIN_STAMP_SIZE
+
+    return stamp_size
 
 
 def get_initial_draw_method(flux):

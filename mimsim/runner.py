@@ -109,11 +109,11 @@ def run_sim(
 
     truth = make_truth(nobj)
 
-    for iobj in tqdm(indices):
+    for itruth, iobj in enumerate(tqdm(indices)):
 
         obj_coord = cat.world_pos[iobj]
-        truth['ra'][iobj] = obj_coord.ra.deg
-        truth['dec'][iobj] = obj_coord.dec.deg
+        truth['ra'][itruth] = obj_coord.ra.deg
+        truth['dec'][itruth] = obj_coord.dec.deg
 
         if not selector(cat, iobj):
             nskipped_select += 1
@@ -122,7 +122,7 @@ def run_sim(
         obj = cat.getObj(index=iobj, rng=gs_rng, exptime=obsdata['exptime'])
 
         flux = obj.calculateFlux(obsdata['bandpass'])
-        truth['nominal_flux'][iobj] = flux
+        truth['nominal_flux'][itruth] = flux
 
         if flux <= 0:  # pragma: no cover
             nskipped_low_flux += 1
@@ -133,8 +133,8 @@ def run_sim(
         )
 
         image_pos = cat.image_pos[iobj]
-        truth['x'][iobj] = image_pos.x
-        truth['y'][iobj] = image_pos.y
+        truth['x'][itruth] = image_pos.x
+        truth['y'][itruth] = image_pos.y
 
         psf_at_pos = eval_psf(psf=psf, image_pos=image_pos)
 
@@ -158,6 +158,8 @@ def run_sim(
             pixel_scale=pixel_scale,
         )
 
+        logger.debug('draw_method: %s stamp_size: %s flux: %s',
+                     draw_method, stamp_size, flux)
         local_wcs = wcs.local(image_pos=image_pos)
 
         if draw_method == 'phot':
@@ -188,14 +190,15 @@ def run_sim(
             continue
 
         image[bounds] += stamp[bounds]
-        truth['realized_flux'][iobj] = stamp.added_flux
-        truth['skipped'][iobj] = False
+        truth['realized_flux'][itruth] = stamp.added_flux
+        truth['skipped'][itruth] = False
 
     image.array[:, :] += np_rng.poisson(lam=sky_image.array)
 
     # should go in after poisson noise
     logger.info('adding cosmic rays')
-    cosmics.add(image)
+    if cosmics is not None:
+        cosmics.add(image)
 
     nskipped = nskipped_select + nskipped_low_flux + nskipped_bounds
     logger.info(f'skipped {nskipped}/{nobj}')
