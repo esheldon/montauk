@@ -1,6 +1,8 @@
 DEFAULT_EXPTIME = 30.0
 
-FOCUS_DEPTH_DICT = {'u': 0, 'g': 0, 'r': 0, 'i': 0, 'z': 0, 'Y': -0.6}
+# use lower Y to simplify code
+FOCUS_DEPTH_DICT = {'u': 0, 'g': 0, 'r': 0, 'i': 0, 'z': 0, 'y': -0.6}
+
 PIXEL_SCALE = 0.2
 DEFAULT_COSMIC_RAY_RATE = 0.2
 MAX_STAMP_SIZE = 4096

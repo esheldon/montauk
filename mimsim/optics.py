@@ -83,6 +83,23 @@ class OpticsMaker(object):
         )
 
 
+def get_focus_depth_value(band):
+    """
+    get the focus depth value for the input band
+
+    Parameters
+    -----------
+    band: str
+        band, case insensitive
+
+    Returns
+    -------
+    the focus depth
+    """
+    from .defaults import FOCUS_DEPTH_DICT
+    return FOCUS_DEPTH_DICT[band.lower()]
+
+
 def make_focus_depth(band):
     """
     Make a FocusDepth object
@@ -97,9 +114,8 @@ def make_focus_depth(band):
     galsim.FocusDepth
     """
     import galsim
-    from .defaults import FOCUS_DEPTH_DICT
 
-    focus_depth_val = FOCUS_DEPTH_DICT[band]
+    focus_depth_val = get_focus_depth_value(band)
     return galsim.FocusDepth(focus_depth_val)
 
 

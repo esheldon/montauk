@@ -3,11 +3,11 @@ import mimsim
 
 
 def test_focus_depth():
-    for band in 'ugrizY':
+    for band in 'ugrizYy':
         focus_depth = mimsim.optics.make_focus_depth(band)
 
         expected = galsim.FocusDepth(
-            mimsim.defaults.FOCUS_DEPTH_DICT[band],
+            mimsim.optics.get_focus_depth_value(band)
         )
         assert focus_depth == expected
 

@@ -28,6 +28,7 @@ seqnum 0
 
 # from a real instcat, but with mags modified to be brighter
 EXAMPLE_DATA = """object 1277244820484 148.86127872008032 -26.12814714857972 21.0 starSED/phoSimMLT/lte027-3.0-0.0a+0.0.BT-Settl.spec.gz 0.0 0.0 0.0 0.0 0 0 point none CCM 0.02817156 3.1
+object 1606103731204 145.2544608618256 -24.450305013258443 15.0 starSED/phoSimMLT/lte037-5.5-1.0a+0.4.BT-Settl.spec.gz 0.0 0.0 0.0 0.0 0 0 point none CCM 0.02479101 3.1
 object 1277253206020 144.99971675234275 -24.991135983257493 22.0 starSED/phoSimMLT/lte038-5.5-0.5a+0.2.BT-Settl.spec.gz 0.0 0.0 0.0 0.0 0 0 point none CCM 0.02479101 3.1
 object 7378523209835 147.95869829097995 -25.155485969898194 21.5 galaxySED/Exp.50E07.0005Z.spec.gz 2.694369 -0.021296607 -0.0052690147 -0.021114068 0 0 sersic2d 0.0676198527 0.0462235659 151.743616 1 CCM 0.5 4.000000000000002 CCM 0.0494707944 3.1
 object 4544517269611 148.1382735947749 -25.16234573185714 22.0 galaxySED/Burst.12E09.0005Z.spec.gz 0.5205865 0.0047163125 -0.006862338 0.0041362215 0 0 sersic2d 0.101926744 0.0586509332 82.5908693 1 CCM 0.1 4.000000000000002 CCM 0.0647401028 3.1"""  # noqa
@@ -43,7 +44,7 @@ def write_example_instcat_header(fobj, band='i'):
         File object to which we will write the header
     """
 
-    filter = 'ugrizY'.index(band)
+    filter = 'ugrizy'.index(band.lower())
     fobj.write(EXAMPLE_HEADER % {'filter': filter})
 
 
@@ -99,7 +100,7 @@ def load_example_obsdata(band='i'):
     return data
 
 
-def load_example_instcat(rng, band='i', dm_detector=None):
+def load_example_instcat(rng, band='i', detnum=88):
     """
     Load example observation data as one would find in an instcat
     header
@@ -110,8 +111,8 @@ def load_example_instcat(rng, band='i', dm_detector=None):
         The random number generator
     band: str, optional
         The band for the observation.  Default 'i'
-    dm_detector: lsst.afw.cameraGeom.Detector, optional
-        Data management detector object.  Use make_dm_detector(detnum)
+    detnum: int, optional
+        Id of detector, 1-189.  Default 88, an E2V sensor
 
     Returns
     -------
@@ -124,8 +125,7 @@ def load_example_instcat(rng, band='i', dm_detector=None):
     from .wcs import make_batoid_wcs
     from .opsim_data import load_obsdata_from_instcat
 
-    if dm_detector is None:
-        dm_detector = make_dm_detector(100)
+    dm_detector = make_dm_detector(detnum)
 
     obsdata = load_example_obsdata(band=band)
     wcs, _ = make_batoid_wcs(

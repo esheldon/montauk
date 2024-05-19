@@ -5,9 +5,30 @@ import numpy as np
 import pytest
 
 
-@pytest.mark.parametrize('band', ['i', 'Y'])
-def test_runner_smoke(band):
-    # 88 is E2V
+@pytest.mark.parametrize(
+    'options',
+    [
+        {'band': 'i',
+         'limit': False,
+         'select': False},
+        {'band': 'i',
+         'limit': True,
+         'select': False},
+        {'band': 'i',
+         'limit': False,
+         'select': True},
+        {'band': 'Y',
+         'limit': False,
+         'select': False}
+    ]
+)
+def test_runner_smoke(options):
+    # 88 is E2V, which we want for fringing
+
+    band = options['band']
+    limit = options['limit']
+    select = options['select']
+
     detnum = 88
 
     # default is 800, use 100 for speed
@@ -19,15 +40,36 @@ def test_runner_smoke(band):
     gs_rng = galsim.BaseDeviate(rng.integers(0, 2**60))
 
     dm_detector = mimsim.camera.make_dm_detector(detnum)
-    obsdata = mimsim.simtools.load_example_obsdata()
+    obsdata = mimsim.simtools.load_example_obsdata(band=band)
 
     wcs, icrf_to_field = mimsim.wcs.make_batoid_wcs(
         obsdata=obsdata, dm_detector=dm_detector,
     )
 
     cat = mimsim.simtools.load_example_instcat(
-        rng=rng, band=band, dm_detector=dm_detector,
+        rng=rng, band=band, detnum=detnum,
     )
+
+    if limit:
+        nobj = 2
+        indices = np.arange(2)
+    else:
+        nobj = cat.getNObjects()
+        indices = None
+
+    def example_selector(d, i):
+        return d.magnorm[i] > magmax
+
+    def default_selector(d, i):
+        return True
+
+    if select:
+        magmax = 21
+        selector = example_selector
+        select_num = np.sum(cat.magnorm > magmax)
+    else:
+        selector = default_selector
+        select_num = nobj
 
     sky_model = imsim.SkyModel(
         exptime=obsdata['exptime'],
@@ -45,6 +87,9 @@ def test_runner_smoke(band):
             boresight=obsdata['boresight'], dm_detector=dm_detector,
         )
     else:
+        assert not mimsim.fringing.should_apply_fringing(
+            band=band, dm_detector=dm_detector,
+        )
         fringer = None
 
     sensor = mimsim.sensor.make_sensor(
@@ -101,7 +146,7 @@ def test_runner_smoke(band):
         gs_rng=gs_rng,
     )
 
-    mimsim.runner.run_sim(
+    image, sky_image, truth = mimsim.runner.run_sim(
         rng=rng,
         cat=cat,
         obsdata=obsdata,
@@ -115,8 +160,35 @@ def test_runner_smoke(band):
         sky_gradient=gradient,
         vignetting=vignetter,
         fringing=fringer,
+        indices=indices,
         apply_pixel_areas=False,  # for speed
+        selector=selector,
     )
+    assert image.array.shape == sky_image.array.shape
+    if limit:
+        assert truth.size == indices.size
+    else:
+        assert truth.size == cat.getNObjects()
+
+    if select:
+        assert np.sum(~truth['skipped']) == select_num
+
+
+@pytest.mark.parametrize(
+    'send_type',
+    ['default_rng', 'RandomState', 'BaseDeviate']
+)
+def test_get_rngs(send_type):
+    if send_type == 'default_rng':
+        rng = np.random.default_rng()
+    elif send_type == 'RandomState':
+        rng = np.random.RandomState()
+    else:
+        rng = galsim.BaseDeviate()
+
+    np_rng, gs_rng = mimsim.runner.get_rngs(rng)
+    assert isinstance(np_rng, np.random.Generator)
+    assert isinstance(gs_rng, galsim.BaseDeviate)
 
 
 if __name__ == '__main__':

@@ -12,7 +12,7 @@ def run_sim(
     sky_gradient=None,
     vignetting=None,
     fringing=None,
-    limit=None,
+    indices=None,
     apply_pixel_areas=True,
     selector=lambda d, i: True,
 ):
@@ -21,8 +21,11 @@ def run_sim(
 
     Parameters
     ----------
-    rng: np.random.default_rng
-        A numpy random number generator
+    rng: random number generator
+        One of
+            - np.random.Generator (from np.random.default_rng)
+            - np.random.RandomState
+            - galsim.BaseDeviate
     cat: imsim.InstCatalog
         The input catalog
     obsdata: dict
@@ -47,10 +50,10 @@ def run_sim(
         Must have an apply(image) method
     fringing: fringing object, optional
         Must have an apply(image) method
-    limit: int, optional
-        Optionally limit to drawing this many objects.  We need this because
-        the imsim.InstCatalog cannot read in a subset of the data, and there is
-        no way to extract a subset from the InstCatalog.
+    indices: sequence, optional
+        Optionally limit to drawing the specified objects.  We need this
+        because the imsim.InstCatalog cannot read in a subset of the data, and
+        there is no way to extract a subset from the InstCatalog.
     apply_pixel_areas: bool, optional
         If set to False, do not apply pixel areas.  This saves a large amount
         of time before drawing begins, good for testing.  Default True
@@ -61,7 +64,7 @@ def run_sim(
     import numpy as np
     import logging
     import galsim
-    from tqdm import trange
+    from tqdm import tqdm
     import imsim
     from imsim.psf_utils import get_fft_psf_maybe
     from .sky import make_sky_image
@@ -72,7 +75,7 @@ def run_sim(
 
     logger = logging.getLogger('imsim-runner')
 
-    gs_rng = galsim.BaseDeviate(rng.integers(0, 2**60))
+    np_rng, gs_rng = get_rngs(rng)
 
     bbox = dm_detector.getBBox()
 
@@ -92,10 +95,13 @@ def run_sim(
     )
     med_noise_var = np.median(sky_image.array)
 
-    nobj = cat.getNObjects()
-    if limit is not None and limit < nobj:
-        logger.info(f'will limit to {limit}/{nobj} objects')
-        nobj = limit
+    if indices is None:
+        indices = np.arange(cat.getNObjects())
+    else:
+        onobj = cat.getNObjects()
+        logger.info(f'will limit to {indices.size}/{onobj} objects')
+
+    nobj = indices.size
 
     nskipped_low_flux = 0
     nskipped_select = 0
@@ -103,7 +109,7 @@ def run_sim(
 
     truth = make_truth(nobj)
 
-    for iobj in trange(nobj):
+    for iobj in tqdm(indices):
 
         obj_coord = cat.world_pos[iobj]
         truth['ra'][iobj] = obj_coord.ra.deg
@@ -185,7 +191,7 @@ def run_sim(
         truth['realized_flux'][iobj] = stamp.added_flux
         truth['skipped'][iobj] = False
 
-    image.array[:, :] += rng.poisson(lam=sky_image.array)
+    image.array[:, :] += np_rng.poisson(lam=sky_image.array)
 
     # should go in after poisson noise
     logger.info('adding cosmic rays')
@@ -235,3 +241,41 @@ def make_truth(nobj):
     st['skipped'] = True
     st['realized_flux'] = np.nan
     return st
+
+
+def get_rngs(rng):
+    """
+    extract numpy and galsim random number generators
+
+    Parameters
+    ----------
+    rng:
+        One of
+            - np.random.Generator (from np.random.default_rng)
+            - np.random.RandomState
+            - galsim.BaseDeviate
+
+    Returns
+    -------
+    np_rng, gs_rng:
+        a np.random.default_rng and a galsim.BaseDeviate
+    """
+    import numpy as np
+    import galsim
+
+    if isinstance(rng, galsim.BaseDeviate):
+        np_rng = np.random.default_rng(rng.raw())
+        gs_rng = rng
+    elif isinstance(rng, np.random.Generator):
+        gs_rng = galsim.BaseDeviate(rng.integers(0, 2**60))
+        np_rng = rng
+    elif isinstance(rng, np.random.RandomState):
+        np_rng = np.random.default_rng(rng.randint(0, 2**60))
+        gs_rng = galsim.BaseDeviate(rng.randint(0, 2**60))
+    else:
+        raise ValueError(
+            f'got rng {type(rng)}, expected one of np.random.default_rng, '
+            'np.random.RandomState, or galsim.BaseDeviate'
+        )
+
+    return np_rng, gs_rng

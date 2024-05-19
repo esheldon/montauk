@@ -12,7 +12,7 @@ def should_apply_fringing(band, dm_detector):
     """
     from .camera import get_ccd_vendor
 
-    if band == 'Y' and get_ccd_vendor(dm_detector) == 'E2V':
+    if band.upper() == 'Y' and get_ccd_vendor(dm_detector) == 'E2V':
         return True
     else:
         return False
