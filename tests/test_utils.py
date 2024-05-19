@@ -1,6 +1,5 @@
 import mimsim
 import galsim
-import pytest
 
 
 def test_latitude():
