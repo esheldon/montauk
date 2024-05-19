@@ -124,7 +124,7 @@ def run_sim(
         flux = obj.calculateFlux(obsdata['bandpass'])
         truth['nominal_flux'][iobj] = flux
 
-        if flux <= 0:
+        if flux <= 0:  # pragma: no cover
             nskipped_low_flux += 1
             continue
 
@@ -183,7 +183,7 @@ def run_sim(
             )
 
         bounds = stamp.bounds & image.bounds
-        if not bounds.isDefined():
+        if not bounds.isDefined():  # pragma: no cover
             nskipped_bounds += 1
             continue
 

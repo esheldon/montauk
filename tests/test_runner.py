@@ -190,6 +190,9 @@ def test_get_rngs(send_type):
     assert isinstance(np_rng, np.random.Generator)
     assert isinstance(gs_rng, galsim.BaseDeviate)
 
+    with pytest.raises(ValueError):
+        mimsim.runner.get_rngs(3)
+
 
 if __name__ == '__main__':
     test_runner_smoke()
