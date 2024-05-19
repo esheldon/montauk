@@ -40,7 +40,7 @@ def test_stamp_size(obj_type):
         )
         print('obj_type:', obj_type, 'flux:', flux, 'stamp_size:', stamp_size)
         if obj_type == 'gal':
-            assert stamp_size == 30
+            assert stamp_size == mimsim.defaults.MIN_STAMP_SIZE
         else:
             assert stamp_size == STAR_EXPECTED[flux]
 
