@@ -57,3 +57,22 @@ def make_batoid_wcs(
         factory.getWCS(det=dm_detector, order=order),
         factory.get_icrf_to_field(det=dm_detector, order=order),
     )
+
+
+def get_pixel_scale(wcs, bbox):
+    """
+    get the pixel scale at the center of the image
+
+    Parameters
+    ----------
+    wcs: galsim.FitsWCS
+        The galsim wcs
+    bbox: lsst.geom.Box2I
+        The image bounding box
+    """
+    import numpy as np
+    import galsim
+
+    x = bbox.getWidth() / 2
+    y = bbox.getHeight() / 2
+    return np.sqrt(wcs.pixelArea(galsim.PositionD(x, y)))

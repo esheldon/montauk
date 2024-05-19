@@ -17,6 +17,7 @@ from . import dcr
 from . import photon_ops
 from . import cosmic_rays
 from . import artist
+from . import runner
 
 from . import utils
 

@@ -45,6 +45,17 @@ def test_stamp_size(obj_type):
             assert stamp_size == STAR_EXPECTED[flux]
 
 
+@pytest.mark.parametrize('flux', [100, 1.e7])
+def test_initial_draw_method(flux):
+    from mimsim.defaults import FFT_FLUX_THRESH, FFT_SB_THRESH
+    draw_method = mimsim.utils.get_initial_draw_method(flux)
+
+    if flux < FFT_FLUX_THRESH or flux < FFT_SB_THRESH:
+        assert draw_method == 'phot'
+    else:
+        assert draw_method == 'fft'
+
+
 if __name__ == '__main__':
     test_stamp_size('gal')
     test_stamp_size('star')
