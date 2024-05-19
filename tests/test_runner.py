@@ -11,26 +11,26 @@ import pytest
         {'band': 'i',
          'limit': False,
          'select': False,
-         'cosmics': False},
+         'cosmics_and_diff_flux': False},
         {'band': 'i',
          'limit': False,
          'select': False,
-         'cosmics': True},
+         'cosmics_and_diff_flux': True},
         {'band': 'i',
          'limit': True,
          'select': False,
-         'cosmics': False},
+         'cosmics_and_diff_flux': False},
         {'band': 'i',
          'limit': False,
          'select': True,
-         'cosmics': False},
+         'cosmics_and_diff_flux': False},
         {'band': 'Y',
          'limit': False,
          'select': False,
-         'cosmics': False}
+         'cosmics_and_diff_flux': False}
     ]
 )
-def test_runner_smoke(options):
+def test_runner(options):
     mimsim.logging.setup_logging('info')
 
     seed = 919
@@ -40,7 +40,7 @@ def test_runner_smoke(options):
     band = options['band']
     limit = options['limit']
     select = options['select']
-    do_cosmics = options['cosmics']
+    options['cosmics_and_diff_flux']
 
     # 88 is E2V, which we want for fringing
     detnum = 88
@@ -60,7 +60,8 @@ def test_runner_smoke(options):
         rng=rng, band=band, detnum=detnum,
     )
     # make all visible but not too brig
-    cat.magnorm[:] = 19
+    if not options['cosmics_and_diff_flux']:
+        cat.magnorm[:] = 19
 
     if limit:
         # indices = np.arange(2)
@@ -153,7 +154,7 @@ def test_runner_smoke(options):
         psf_config=psf_config,
     )
 
-    if do_cosmics:
+    if options['cosmics_and_diff_flux']:
         cosmics = mimsim.cosmic_rays.CosmicRays(
             cosmic_ray_rate=cosmic_ray_rate,
             exptime=obsdata['exptime'],
@@ -190,7 +191,7 @@ def test_runner_smoke(options):
         assert np.sum(~truth['skipped']) == select_num
 
     # cosmics not in truth
-    if not do_cosmics:
+    if not options['cosmics_and_diff_flux']:
         exposure = _image_to_exposure(
             image=image, sky_image=sky_image, band=band,
         )
@@ -392,5 +393,10 @@ def _make_fixed_psf(fwhm, rng=None):
 
 if __name__ == '__main__':
 
-    options = {'band': 'i', 'limit': False, 'select': False}
-    test_runner_smoke(options)
+    options = {
+        'band': 'i',
+        'limit': False,
+        'select': False,
+        'cosmics_and_diff_flux': False,
+    }
+    test_runner(options)
