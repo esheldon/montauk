@@ -34,6 +34,10 @@ jobs:
                   show-channel-urls: true
                   miniforge-version: latest
 
+            - name: Install rubin_sim_data
+              run: |
+                curl https://www.cosmo.bnl.gov/www/esheldon/data/rubin/rubin_sim_data_mini.tar.gz | tar xvz
+
             - name: Install imsim and deps
               run: |
                 conda config --set always_yes yes
@@ -51,10 +55,6 @@ jobs:
                 pip install -e .
                 cd ..
 
-            - name: Install rubin_sim_data
-              run: |
-                curl https://www.cosmo.bnl.gov/www/esheldon/data/rubin/rubin_sim_data_mini.tar.gz | tar xvz
-
             - name: Install mimsim
               run:
                 pip install .
@@ -66,6 +66,6 @@ jobs:
             - name: Run tests
               run: |
                 export IMSIM_HOME=$(realpath ..)
-                export RUBIN_SIM_DATA_DIR=$(pwd)/rubin_sim_data
+                export RUBIN_SIM_DATA_DIR=$(pwd)/rubin_sim_data_mini
                 export SIMS_SED_LIBRARY_DIR=$RUBIN_SIM_DATA_DIR/sims_sed_library
                 pytest -vv tests
