@@ -11,11 +11,17 @@ import pytest
         {'band': 'i',
          'limit': False,
          'select': False,
-         'cosmics_and_diff_flux': False},
+         'cosmics_and_diff_flux': True},
         {'band': 'i',
          'limit': False,
          'select': False,
+         'cosmics_and_diff_flux': False},
+
+        {'band': 'i',
+         'limit': False,
+         'select': True,
          'cosmics_and_diff_flux': True},
+
         {'band': 'i',
          'limit': True,
          'select': False,
@@ -40,7 +46,6 @@ def test_runner(options):
     band = options['band']
     limit = options['limit']
     select = options['select']
-    options['cosmics_and_diff_flux']
 
     # 88 is E2V, which we want for fringing
     detnum = 88
@@ -62,6 +67,9 @@ def test_runner(options):
     # make all visible but not too brig
     if not options['cosmics_and_diff_flux']:
         cat.magnorm[:] = 19
+    elif select:
+        # this will be skipped
+        cat.magnorm[-1] = 5
 
     if limit:
         # indices = np.arange(2)
@@ -396,7 +404,7 @@ if __name__ == '__main__':
     options = {
         'band': 'i',
         'limit': False,
-        'select': False,
-        'cosmics_and_diff_flux': False,
+        'select': True,
+        'cosmics_and_diff_flux': True,
     }
     test_runner(options)
