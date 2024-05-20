@@ -68,7 +68,11 @@ jobs:
 
             - name: Install test deps
               run:
-                conda install pytest pytest-cov || true
+                conda install pytest pytest-cov flake8 || true
+
+            - name: lint
+              run: |
+                flake8
 
             - name: Run tests
               run: |
