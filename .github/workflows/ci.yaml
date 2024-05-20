@@ -1,0 +1,64 @@
+name: mimsim CI
+
+on:
+    push:
+        branches:
+            - main
+    pull_request: null
+
+jobs:
+    tests:
+        runs-on: ${{ matrix.os }}
+        strategy:
+            matrix:
+                os: [ ubuntu-latest ]
+                py: [ "3.11" ]
+                CC: [ gcc ]
+                CXX: [ g++ ]
+
+        steps:
+            - uses: actions/checkout@v2
+            - uses: conda-incubator/setup-miniconda@v2
+                with:
+                    python-version: ${{ matrix.pyver }}
+                    channels: conda-forge,defaults
+                    channel-priority: strict
+                    show-channel-urls: true
+                    miniforge-version: latest
+                    miniforge-variant: Mambaforge
+
+            - name: Install imsim and deps
+              run: |
+                mamba config --set always_yes yes
+                git clone https://github.com/LSSTDESC/imSim.git imSim-local
+                cd imSim-local
+                mamba install --file etc/standalone_conda_requirements.txt || true
+                pip install -e .
+                cd ..
+
+            - name: Install skyCatalogs from source
+              run: |
+                git clone https://github.com/LSSTDESC/skyCatalogs.git skyCatalogs-local
+                cd skyCatalogs-local
+                git checkout v1.6.0rc2
+                pip install -e .
+                cd ..
+
+            - name: Install rubin_sim_data
+              run: |
+                curl https://www.cosmo.bnl.gov/www/esheldon/data/rubin/rubin_sim_data_mini.tar.gz | tar xvz
+
+            - name: Install mimsim
+              run:
+                pip install .
+
+            - name: Install test deps
+              run:
+                mamba install pytest || true
+
+            - name: Run tests
+              run: |
+                export IMSIM_HOME=$(realpath ..)
+                export RUBIN_SIM_DATA_DIR=$(pwd)/rubin_sim_data
+                export SIMS_SED_LIBRARY_DIR=$RUBIN_SIM_DATA_DIR/sims_sed_library
+                pytest -vv tests
