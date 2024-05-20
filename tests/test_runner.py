@@ -366,7 +366,7 @@ def _detect(exposure, thresh=5):
         SourceDetectionTask, SourceDetectionConfig,
     )
     from lsst.meas.deblender import SourceDeblendTask, SourceDeblendConfig
-    from metadetect.lsst.util import get_stats_mask
+    # from metadetect.lsst.util import get_stats_mask
 
     schema = afw_table.SourceTable.makeMinimalSchema()
 
@@ -401,7 +401,7 @@ def _detect(exposure, thresh=5):
     detection_config.thresholdValue = thresh
 
     # these will be ignored when finding the image standard deviation
-    detection_config.statsMask = get_stats_mask(exposure)
+    # detection_config.statsMask = get_stats_mask(exposure)
 
     detection_task = SourceDetectionTask(config=detection_config)
 

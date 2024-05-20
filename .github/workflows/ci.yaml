@@ -4,7 +4,10 @@ on:
     push:
         branches:
             - main
-    pull_request: null
+    pull_request:
+        branches:
+            - main
+            - releases/*
 
 jobs:
     tests:
@@ -16,23 +19,31 @@ jobs:
                 CC: [ gcc ]
                 CXX: [ g++ ]
 
+        defaults:
+            run:
+                # cf. https://github.com/conda-incubator/setup-miniconda#important
+                shell: bash -l {0}
+
         steps:
             - uses: actions/checkout@v2
             - uses: conda-incubator/setup-miniconda@v2
-                with:
-                    python-version: ${{ matrix.pyver }}
-                    channels: conda-forge,defaults
-                    channel-priority: strict
-                    show-channel-urls: true
-                    miniforge-version: latest
-                    miniforge-variant: Mambaforge
+              with:
+                  python-version: ${{ matrix.pyver }}
+                  channels: conda-forge,defaults
+                  channel-priority: strict
+                  show-channel-urls: true
+                  miniforge-version: latest
+
+            - name: Install rubin_sim_data
+              run: |
+                curl https://www.cosmo.bnl.gov/www/esheldon/data/rubin/rubin_sim_data_mini.tar.gz | tar xvz
 
             - name: Install imsim and deps
               run: |
-                mamba config --set always_yes yes
+                conda config --set always_yes yes
                 git clone https://github.com/LSSTDESC/imSim.git imSim-local
                 cd imSim-local
-                mamba install --file etc/standalone_conda_requirements.txt || true
+                conda install --file etc/standalone_conda_requirements.txt || true
                 pip install -e .
                 cd ..
 
@@ -44,9 +55,12 @@ jobs:
                 pip install -e .
                 cd ..
 
-            - name: Install rubin_sim_data
+            - name: Install psfws from source
               run: |
-                curl https://www.cosmo.bnl.gov/www/esheldon/data/rubin/rubin_sim_data_mini.tar.gz | tar xvz
+                git clone https://github.com/LSSTDESC/psf-weather-station.git psfws-local
+                cd psfws-local
+                pip install -e .
+                cd ..
 
             - name: Install mimsim
               run:
@@ -54,11 +68,16 @@ jobs:
 
             - name: Install test deps
               run:
-                mamba install pytest || true
+                conda install pytest pytest-cov flake8 || true
+
+            - name: lint
+              run: |
+                flake8 mimsim
 
             - name: Run tests
               run: |
                 export IMSIM_HOME=$(realpath ..)
-                export RUBIN_SIM_DATA_DIR=$(pwd)/rubin_sim_data
+                export RUBIN_SIM_DATA_DIR=$(pwd)/rubin_sim_data_mini
                 export SIMS_SED_LIBRARY_DIR=$RUBIN_SIM_DATA_DIR/sims_sed_library
-                pytest -vv tests
+
+                pytest -vv --cov=mimsim --cov-report=term-missing tests/
