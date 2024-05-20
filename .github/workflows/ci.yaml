@@ -72,7 +72,7 @@ jobs:
 
             - name: lint
               run: |
-                flake8
+                flake8 mimsim
 
             - name: Run tests
               run: |
