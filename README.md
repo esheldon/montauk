@@ -44,7 +44,7 @@ wcs, icrf_to_field = mimsim.wcs.make_batoid_wcs(
 )
 
 sky_model = imsim.SkyModel(
-    exptime=obsdata['exptime'],
+    exptime=obsdata['vistime'],
     mjd=obsdata['mjd'],
     bandpass=obsdata['bandpass'],
 )
@@ -73,14 +73,14 @@ optics = mimsim.optics.OpticsMaker(
 )
 
 photon_ops_maker = mimsim.photon_ops.PhotonOpsMaker(
-    exptime=obsdata['exptime'],
+    exptime=obsdata['vistime'],
     band=obsdata['band'],
     dcr=dcr,
     optics=optics,
 )
 
 diffraction_fft = imsim.stamp.DiffractionFFT(
-    exptime=obsdata['exptime'],
+    exptime=obsdata['vistime'],
     altitude=obsdata['altitude'],
     azimuth=obsdata['azimuth'],
     rotTelPos=obsdata['rotTelPos'],
@@ -102,7 +102,7 @@ psf = mimsim.psfws.make_psfws_psf(
 
 cosmics = mimsim.cosmic_rays.CosmicRays(
     cosmic_ray_rate=cosmic_ray_rate,
-    exptime=obsdata['exptime'],
+    exptime=obsdata['vistime'],
     gs_rng=gs_rng,
 )
 
