@@ -21,6 +21,7 @@ seed = 919
 rng = np.random.default_rng(seed)
 gs_rng = galsim.BaseDeviate(rng.integers(0, 2**60))
 
+# we will skip fringing, only applies to Y band
 band = 'i'
 detnum = 35
 
