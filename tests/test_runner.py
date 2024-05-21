@@ -39,7 +39,7 @@ def test_runner_smoke():
     gradient = mimsim.sky.FixedSkyGradient(sky_model)
     vignetter = mimsim.vignetting.Vignetter(dm_detector)
 
-    tree_rings = mimsim.tree_rings.make_tree_rings([dm_detector])
+    tree_rings = mimsim.tree_rings.make_tree_rings([detnum])
     sensor = mimsim.sensor.make_sensor(
         dm_detector=dm_detector,
         tree_rings=tree_rings,
@@ -222,7 +222,7 @@ def test_runner(options):
         )
         fringer = None
 
-    tree_rings = mimsim.tree_rings.make_tree_rings([dm_detector])
+    tree_rings = mimsim.tree_rings.make_tree_rings([detnum])
     sensor = mimsim.sensor.make_sensor(
         dm_detector=dm_detector,
         tree_rings=tree_rings,

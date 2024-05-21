@@ -26,7 +26,7 @@ def test_artist_smoke(flux):
         hour_angle=obsdata['HA'],
     )
 
-    tree_rings = mimsim.tree_rings.make_tree_rings([dm_detector])
+    tree_rings = mimsim.tree_rings.make_tree_rings([detnum])
     sensor = mimsim.sensor.make_sensor(
         dm_detector=dm_detector,
         gs_rng=gs_rng,

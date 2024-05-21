@@ -1,19 +1,23 @@
-def make_tree_rings(dm_detectors):
+def make_tree_rings(detnums):
     """
     Make a imsim.treerinsg.TreeRings instance
 
     Parameters
     -----------
-    dm_detectors: [lsst.afw.cameraGeom.Detector]
-        List of data management detector objects.  Use make_dm_detector(detnum)
+    detnums: sequence
+        The detector numbers, e.g. [3, 25]
 
     Returns
     -------
     imsim.treerings.TreeRings
     """
     import imsim
+    from .camera import make_dm_detector
+    names = []
+    for detnum in detnums:
+        det = make_dm_detector(detnum)
+        names.append(det.getName())
 
-    names = [det.getName() for det in dm_detectors]
     return imsim.treerings.TreeRings(
         'tree_ring_parameters_2018-04-26.txt',
         only_dets=names,
