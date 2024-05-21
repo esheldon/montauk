@@ -5,6 +5,11 @@ Examples
 --------
 ```python
 # Example using the provided "run_sim" convenience function
+# you don't have to use run_sim, you can write your own
+# also, you can replace any of the objects below, such
+# as the psf, sky, vignetting etc. as long as they 
+# provide the right interface
+
 import galsim
 import imsim
 import mimsim
@@ -24,14 +29,18 @@ psf_config = {'screen_size': 100}
 cosmic_ray_rate = mimsim.defaults.DEFAULT_COSMIC_RAY_RATE
 
 dm_detector = mimsim.camera.make_dm_detector(detnum)
+
+# load the metadata for some example data
 obsdata = mimsim.simtools.load_example_obsdata(band=band)
 
-wcs, icrf_to_field = mimsim.wcs.make_batoid_wcs(
-    obsdata=obsdata, dm_detector=dm_detector,
-)
-
+# load the objects from the example data
 cat = mimsim.simtools.load_example_instcat(
     rng=rng, band=band, detnum=detnum,
+)
+
+# this WCS does not include DCR
+wcs, icrf_to_field = mimsim.wcs.make_batoid_wcs(
+    obsdata=obsdata, dm_detector=dm_detector,
 )
 
 sky_model = imsim.SkyModel(

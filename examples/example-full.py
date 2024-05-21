@@ -19,14 +19,17 @@ def main():
     cosmic_ray_rate = mimsim.defaults.DEFAULT_COSMIC_RAY_RATE
 
     dm_detector = mimsim.camera.make_dm_detector(detnum)
+
+    # load the metadata for some example data
     obsdata = mimsim.simtools.load_example_obsdata(band=band)
+
+    # load the objects from the example data
+    cat = mimsim.simtools.load_example_instcat(
+        rng=rng, band=band, detnum=detnum,
+    )
 
     wcs, icrf_to_field = mimsim.wcs.make_batoid_wcs(
         obsdata=obsdata, dm_detector=dm_detector,
-    )
-
-    cat = mimsim.simtools.load_example_instcat(
-        rng=rng, band=band, detnum=detnum,
     )
 
     sky_model = imsim.SkyModel(
