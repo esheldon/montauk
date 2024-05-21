@@ -24,7 +24,7 @@ def test_make_sensor_tree_rings(use_tree_rings):
         for detnum in detnums
     ]
     if use_tree_rings:
-        tree_rings = mimsim.tree_rings.make_tree_rings(dm_detectors)
+        tree_rings = mimsim.tree_rings.make_tree_rings(detnums)
         assert len(tree_rings.info) == len(dm_detectors)
         for det in dm_detectors:
             assert det.getName() in tree_rings.info

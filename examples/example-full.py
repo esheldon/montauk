@@ -41,8 +41,21 @@ def main():
     gradient = mimsim.sky.FixedSkyGradient(sky_model)
     vignetter = mimsim.vignetting.Vignetter(dm_detector)
 
+    # this only applies to E2V sensors in Y band
+    if mimsim.fringing.should_apply_fringing(
+        band=obsdata['band'], dm_detector=dm_detector,
+    ):
+        fringer = mimsim.fringing.Fringer(
+            boresight=obsdata['boresight'], dm_detector=dm_detector,
+        )
+    else:
+        fringer = None
+
+    tree_rings = mimsim.tree_rings.make_tree_rings([detnum])
     sensor = mimsim.sensor.make_sensor(
-        dm_detector=dm_detector, gs_rng=gs_rng,
+        dm_detector=dm_detector,
+        tree_rings=tree_rings,
+        gs_rng=gs_rng,
     )
 
     dcr = mimsim.dcr.DCRMaker(
@@ -108,6 +121,7 @@ def main():
         cosmics=cosmics,
         sky_gradient=gradient,
         vignetting=vignetter,
+        fringing=fringer,
         apply_pixel_areas=False,  # for speed
     )
 

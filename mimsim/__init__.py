@@ -23,3 +23,4 @@ from . import utils
 from . import logging
 
 from . import simtools
+from . import opsim_data
