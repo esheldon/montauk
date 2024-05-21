@@ -25,7 +25,7 @@ def test_psfws():
         band=obsdata['band'],
         boresight=obsdata['boresight'],
         rawSeeing=obsdata['rawSeeing'],
-        exptime=obsdata['exptime'],
+        exptime=obsdata['vistime'],
         **psf_config
     )
 

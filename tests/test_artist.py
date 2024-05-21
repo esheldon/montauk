@@ -45,14 +45,14 @@ def test_artist_smoke(flux):
     )
 
     photon_ops_maker = mimsim.photon_ops.PhotonOpsMaker(
-        exptime=obsdata['exptime'],
+        exptime=obsdata['vistime'],
         band=obsdata['band'],
         dcr=dcr,
         optics=optics,
     )
 
     diffraction_fft = imsim.stamp.DiffractionFFT(
-        exptime=obsdata['exptime'],
+        exptime=obsdata['vistime'],
         altitude=obsdata['altitude'],
         azimuth=obsdata['azimuth'],
         rotTelPos=obsdata['rotTelPos'],

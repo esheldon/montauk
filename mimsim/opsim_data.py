@@ -1,4 +1,4 @@
-def load_obsdata_from_instcat(instcat, exptime):
+def load_obsdata_from_instcat(instcat):
     """
     load observational data from an instcat header, applying data
     conversions
@@ -7,8 +7,6 @@ def load_obsdata_from_instcat(instcat, exptime):
     ----------
     instcat: str
         The instcat
-    exptime: float
-        Exposure time in seconds
 
     Returns
     -------
@@ -25,5 +23,4 @@ def load_obsdata_from_instcat(instcat, exptime):
     obsdata['altitude'] = obsdata['altitude'] * galsim.degrees
     obsdata['azimuth'] = obsdata['azimuth'] * galsim.degrees
     obsdata['HA'] = obsdata['HA'] * galsim.degrees
-    obsdata['exptime'] = exptime
     return obsdata

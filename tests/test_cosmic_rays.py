@@ -8,17 +8,16 @@ import pytest
 def test_cosmic_rays(cosmic_ray_rate):
 
     seed = 1982
-    exptime = 30
-
-    cosmics = mimsim.cosmic_rays.CosmicRays(
-        cosmic_ray_rate=cosmic_ray_rate,
-        exptime=exptime,
-        gs_rng=galsim.BaseDeviate(seed),
-    )
 
     detnum = 79
     dm_detector = mimsim.camera.make_dm_detector(detnum)
     obsdata = mimsim.simtools.load_example_obsdata()
+
+    cosmics = mimsim.cosmic_rays.CosmicRays(
+        cosmic_ray_rate=cosmic_ray_rate,
+        exptime=obsdata['vistime'],
+        gs_rng=galsim.BaseDeviate(seed),
+    )
 
     wcs, _ = mimsim.wcs.make_batoid_wcs(
         obsdata=obsdata, dm_detector=dm_detector,

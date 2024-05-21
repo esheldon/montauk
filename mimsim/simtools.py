@@ -95,7 +95,7 @@ def load_example_obsdata(band='i'):
         with open(fname, 'w') as fobj:
             write_example_instcat_header(fobj, band=band)
 
-        data = load_obsdata_from_instcat(fname, exptime=30)
+        data = load_obsdata_from_instcat(fname)
 
     return data
 
@@ -138,7 +138,7 @@ def load_example_instcat(rng, band='i', detnum=88):
             write_example_instcat_header(fobj, band=band)
             write_example_instcat_data(fobj=fobj, rng=rng, wcs=wcs)
 
-        obsdata = load_obsdata_from_instcat(fname, exptime=30)
+        obsdata = load_obsdata_from_instcat(fname)
 
         cat = imsim.instcat.InstCatalog(file_name=fname, wcs=wcs)
 

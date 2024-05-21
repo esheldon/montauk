@@ -46,7 +46,7 @@ def test_optics_maker():
     )
     local_wcs = wcs.local(image_pos=image_pos)
 
-    time_sampler = galsim.TimeSampler(exptime=30)
+    time_sampler = galsim.TimeSampler(exptime=obsdata['vistime'])
     pupil_sampler = mimsim.telescope.make_pupil_sampler()
 
     time_sampler.applyTo(pa, rng=gs_rng)

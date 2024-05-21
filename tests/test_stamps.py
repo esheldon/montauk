@@ -25,7 +25,7 @@ def test_stamp_size(obj_type):
     obsdata = mimsim.simtools.load_example_obsdata()
 
     sky_model = imsim.SkyModel(
-        exptime=obsdata['exptime'],
+        exptime=obsdata['vistime'],
         mjd=obsdata['mjd'],
         bandpass=obsdata['bandpass'],
     )

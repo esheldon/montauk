@@ -1,5 +1,3 @@
-DEFAULT_EXPTIME = 30.0
-
 # use lower Y to simplify code
 FOCUS_DEPTH_DICT = {'u': 0, 'g': 0, 'r': 0, 'i': 0, 'z': 0, 'y': -0.6}
 

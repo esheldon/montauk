@@ -37,7 +37,7 @@ def test_photon_ops_maker(use_dcr):
     )
 
     photon_ops_maker = mimsim.photon_ops.PhotonOpsMaker(
-        exptime=obsdata['exptime'],
+        exptime=obsdata['vistime'],
         band=obsdata['band'],
         dcr=dcr,
         optics=optics,
@@ -45,7 +45,7 @@ def test_photon_ops_maker(use_dcr):
     ops = photon_ops_maker(sky_pos)
 
     expected = [
-        galsim.TimeSampler(t0=0.0, exptime=obsdata['exptime']),
+        galsim.TimeSampler(t0=0.0, exptime=obsdata['vistime']),
         mimsim.telescope.make_pupil_sampler(),
     ]
 

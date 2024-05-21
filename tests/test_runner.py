@@ -31,7 +31,7 @@ def test_runner_smoke():
     )
 
     sky_model = imsim.SkyModel(
-        exptime=obsdata['exptime'],
+        exptime=obsdata['vistime'],
         mjd=obsdata['mjd'],
         bandpass=obsdata['bandpass'],
     )
@@ -60,14 +60,14 @@ def test_runner_smoke():
     )
 
     photon_ops_maker = mimsim.photon_ops.PhotonOpsMaker(
-        exptime=obsdata['exptime'],
+        exptime=obsdata['vistime'],
         band=obsdata['band'],
         dcr=dcr,
         optics=optics,
     )
 
     diffraction_fft = imsim.stamp.DiffractionFFT(
-        exptime=obsdata['exptime'],
+        exptime=obsdata['vistime'],
         altitude=obsdata['altitude'],
         azimuth=obsdata['azimuth'],
         rotTelPos=obsdata['rotTelPos'],
@@ -89,7 +89,7 @@ def test_runner_smoke():
 
     cosmics = mimsim.cosmic_rays.CosmicRays(
         cosmic_ray_rate=cosmic_ray_rate,
-        exptime=obsdata['exptime'],
+        exptime=obsdata['vistime'],
         gs_rng=gs_rng,
     )
 
@@ -199,7 +199,7 @@ def test_runner(options):
         select_num = nobj
 
     sky_model = imsim.SkyModel(
-        exptime=obsdata['exptime'],
+        exptime=obsdata['vistime'],
         mjd=obsdata['mjd'],
         bandpass=obsdata['bandpass'],
     )
@@ -240,14 +240,14 @@ def test_runner(options):
     )
 
     photon_ops_maker = mimsim.photon_ops.PhotonOpsMaker(
-        exptime=obsdata['exptime'],
+        exptime=obsdata['vistime'],
         band=obsdata['band'],
         dcr=dcr,
         optics=optics,
     )
 
     diffraction_fft = imsim.stamp.DiffractionFFT(
-        exptime=obsdata['exptime'],
+        exptime=obsdata['vistime'],
         altitude=obsdata['altitude'],
         azimuth=obsdata['azimuth'],
         rotTelPos=obsdata['rotTelPos'],
@@ -270,7 +270,7 @@ def test_runner(options):
     if options['cosmics_and_diff_flux']:
         cosmics = mimsim.cosmic_rays.CosmicRays(
             cosmic_ray_rate=cosmic_ray_rate,
-            exptime=obsdata['exptime'],
+            exptime=obsdata['vistime'],
             gs_rng=gs_rng,
         )
     else:

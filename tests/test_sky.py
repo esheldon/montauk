@@ -51,7 +51,7 @@ def test_make_sky(options):
     )
 
     sky_model = imsim.SkyModel(
-        exptime=obsdata['exptime'],
+        exptime=obsdata['vistime'],
         mjd=obsdata['mjd'],
         bandpass=obsdata['bandpass'],
     )
@@ -140,7 +140,7 @@ def test_gradient():
     )
 
     sky_model = imsim.sky_model.SkyModel(
-        exptime=obsdata['exptime'],
+        exptime=obsdata['vistime'],
         mjd=obsdata['mjd'],
         bandpass=obsdata['bandpass'],
     )
