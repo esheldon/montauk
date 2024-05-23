@@ -52,6 +52,9 @@ jobs:
                 git clone https://github.com/LSSTDESC/skyCatalogs.git skyCatalogs-local
                 cd skyCatalogs-local
                 git checkout v1.6.0rc2
+                # fix bug specifying version
+                sed -i.bak 's/\.skycatalogs/skycatalogs/' pyproject.toml
+                # turn off isolation for newer pip
                 pip install --no-build-isolation --no-deps -e .
                 cd ..
 
