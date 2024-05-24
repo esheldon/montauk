@@ -108,7 +108,7 @@ def main():
         gs_rng=gs_rng,
     )
 
-    mimsim.runner.run_sim(
+    image, sky_image, truth = mimsim.runner.run_sim(
         rng=rng,
         cat=cat,
         obsdata=obsdata,
@@ -122,7 +122,6 @@ def main():
         sky_gradient=gradient,
         vignetting=vignetter,
         fringing=fringer,
-        apply_pixel_areas=False,  # for speed
     )
 
 
