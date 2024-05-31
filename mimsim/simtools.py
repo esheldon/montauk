@@ -2,10 +2,11 @@
 tools for quick sims.  These are used in the unit tests
 """
 
+DEFAULT_ALTITUDE = 54.54217760455894
 EXAMPLE_HEADER = """rightascension 199.76585516403472
 declination 1.9773321936155552
 mjd 61578.955910303266
-altitude 54.54217760455894
+altitude %(altitude)f
 azimuth 27.43507998205512
 filter %(filter)s
 rotskypos 170.12548239658125
@@ -34,7 +35,7 @@ object 7378523209835 147.95869829097995 -25.155485969898194 21.5 galaxySED/Exp.5
 object 4544517269611 148.1382735947749 -25.16234573185714 22.0 galaxySED/Burst.12E09.0005Z.spec.gz 0.5205865 0.0047163125 -0.006862338 0.0041362215 0 0 sersic2d 0.101926744 0.0586509332 82.5908693 1 CCM 0.1 4.000000000000002 CCM 0.0647401028 3.1"""  # noqa
 
 
-def write_example_instcat_header(fobj, band='i'):
+def write_example_instcat_header(fobj, band='i', altitude=DEFAULT_ALTITUDE):
     """
     write an example instcat header to the input file object
 
@@ -43,9 +44,9 @@ def write_example_instcat_header(fobj, band='i'):
     fobj: file object
         File object to which we will write the header
     """
-
     filter = 'ugrizy'.index(band.lower())
-    fobj.write(EXAMPLE_HEADER % {'filter': filter})
+    header = EXAMPLE_HEADER % {'filter': filter, 'altitude': altitude}
+    fobj.write(header)
 
 
 def write_example_instcat_data(fobj, rng, wcs):
@@ -72,7 +73,7 @@ def write_example_instcat_data(fobj, rng, wcs):
         _write_instcat_line(fobj, entry)
 
 
-def load_example_obsdata(band='i'):
+def load_example_obsdata(band='i', altitude=DEFAULT_ALTITUDE):
     """
     Load example observation data as one would find in an instcat
     header
@@ -93,14 +94,14 @@ def load_example_obsdata(band='i'):
     with tempfile.TemporaryDirectory() as dir:
         fname = os.path.join(dir, 'instcat.txt')
         with open(fname, 'w') as fobj:
-            write_example_instcat_header(fobj, band=band)
+            write_example_instcat_header(fobj, band=band, altitude=altitude)
 
         data = load_obsdata_from_instcat(fname)
 
     return data
 
 
-def load_example_instcat(rng, band='i', detnum=88):
+def load_example_instcat(rng, band='i', detnum=88, altitude=DEFAULT_ALTITUDE):
     """
     Load example observation data as one would find in an instcat
     header
@@ -135,7 +136,7 @@ def load_example_instcat(rng, band='i', detnum=88):
     with tempfile.TemporaryDirectory() as dir:
         fname = os.path.join(dir, 'instcat.txt')
         with open(fname, 'w') as fobj:
-            write_example_instcat_header(fobj, band=band)
+            write_example_instcat_header(fobj, band=band, altitude=altitude)
             write_example_instcat_data(fobj=fobj, rng=rng, wcs=wcs)
 
         obsdata = load_obsdata_from_instcat(fname)
