@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 
-def test_runner_smoke(nobj=None):
+def test_runner_smoke():
     mimsim.logging.setup_logging('info')
 
     seed = 919
@@ -27,7 +27,7 @@ def test_runner_smoke(nobj=None):
     )
 
     cat = mimsim.simtools.load_example_instcat(
-        rng=rng, band=band, detnum=detnum, nobj=nobj,
+        rng=rng, band=band, detnum=detnum,
     )
 
     sky_model = imsim.SkyModel(
@@ -512,7 +512,7 @@ def _make_fixed_psf(fwhm, rng=None):
 
 if __name__ == '__main__':
 
-    test_runner_smoke(nobj=100)
+    test_runner_smoke()
     # options = {
     #     'band': 'i',
     #     'limit': False,

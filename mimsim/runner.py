@@ -219,7 +219,7 @@ def run_sim(
     if wcs_fitter is not None:
         final_wcs = wcs_fitter.fit()
         image.wcs = final_wcs
-        sky_image.wcs = wcs
+        sky_image.wcs = final_wcs
         truth['x'], truth['y'] = final_wcs.radecToxy(
             ra=truth['ra'], dec=truth['dec'],
             units=galsim.degrees,

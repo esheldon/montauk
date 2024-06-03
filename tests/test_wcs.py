@@ -257,3 +257,4 @@ def print_range(name, val, err, nsigma=3.5):
 if __name__ == '__main__':
     test_wcs_with_dcr('narrow')
     test_wcs_with_dcr('trivial')
+    test_wcs_in_runner()
