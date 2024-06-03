@@ -14,6 +14,7 @@ def run_sim(
     fringing=None,
     indices=None,
     apply_pixel_areas=True,
+    wcs_fitter=None,
     selector=lambda d, i: True,
 ):
     """
@@ -57,6 +58,17 @@ def run_sim(
     apply_pixel_areas: bool, optional
         If set to False, do not apply pixel areas.  This saves a large amount
         of time before drawing begins, good for testing.  Default True
+    wcs_fitter: optional
+        Optional object with which to fit the wcs.  It must have a __contains__
+        method so that "index in wcs_fitter" returns true for objects which are
+        requested to have positions calculated, and an add_entry(x, y, coord)
+        method to add positions.  Finally, it must have a fit() method which
+        will return the fitted WCS  An example is given in
+        .wcs.WCSFitterByIndex
+
+        If not sent, the input wcs will be used to calculate the final
+        positions of objects.  This will be biased in the case where there is
+        physics not included in the batoid WCS such as DCR
     selector: function
         A way to select on the catalog, must be callable with selector(cat,
         iobj) and return True if the object is to be kept
@@ -112,6 +124,11 @@ def run_sim(
     for itruth, iobj in enumerate(tqdm(indices)):
 
         obj_coord = cat.world_pos[iobj]
+        image_pos = cat.image_pos[iobj]
+
+        # if wcs_fitter is sent, x and y will be overwritten
+        truth['x'][itruth] = image_pos.x
+        truth['y'][itruth] = image_pos.y
         truth['ra'][itruth] = obj_coord.ra.deg
         truth['dec'][itruth] = obj_coord.dec.deg
 
@@ -131,10 +148,6 @@ def run_sim(
         imsim.stamp.LSST_SiliconBuilder._fix_seds(
             prof=obj, bandpass=obsdata['bandpass'], logger=logger,
         )
-
-        image_pos = cat.image_pos[iobj]
-        truth['x'][itruth] = image_pos.x
-        truth['y'][itruth] = image_pos.y
 
         psf_at_pos = eval_psf(psf=psf, image_pos=image_pos)
 
@@ -189,9 +202,28 @@ def run_sim(
             nskipped_bounds += 1
             continue
 
+        if wcs_fitter is not None and iobj in wcs_fitter:
+            posdata = artist.get_pos(
+                obj=obj, obj_coord=obj_coord, image_pos=image_pos,
+                stamp_size=stamp_size, local_wcs=local_wcs,
+                psf=psf_at_pos,
+            )
+            wcs_fitter.add_entry(
+                iobj, posdata['x'], posdata['y'], posdata['coord'],
+            )
+
         image[bounds] += stamp[bounds]
         truth['realized_flux'][itruth] = stamp.added_flux
         truth['skipped'][itruth] = False
+
+    if wcs_fitter is not None:
+        final_wcs = wcs_fitter.fit()
+        image.wcs = final_wcs
+        sky_image.wcs = wcs
+        truth['x'], truth['y'] = final_wcs.radecToxy(
+            ra=truth['ra'], dec=truth['dec'],
+            units=galsim.degrees,
+        )
 
     image.array[:, :] += np_rng.poisson(lam=sky_image.array)
 

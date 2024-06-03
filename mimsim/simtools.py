@@ -43,13 +43,17 @@ def write_example_instcat_header(fobj, band='i', altitude=DEFAULT_ALTITUDE):
     -----------
     fobj: file object
         File object to which we will write the header
+    band: str, optional
+        Optional band, default 'i'
+    altitude: float, optional
+        Set altitude.  Default is defaults.DEFAULT_ALTITUDE
     """
     filter = 'ugrizy'.index(band.lower())
     header = EXAMPLE_HEADER % {'filter': filter, 'altitude': altitude}
     fobj.write(header)
 
 
-def write_example_instcat_data(fobj, rng, wcs):
+def write_example_instcat_data(fobj, rng, wcs, nobj=None):
     """
     write example data to the input file object
 
@@ -57,11 +61,23 @@ def write_example_instcat_data(fobj, rng, wcs):
     -----------
     fobj: file object
         File object to which we will write the header
+    rng: np.random.default_rng or equivalent
+        Random number generator
+    wcs: glasim.GSFitsWCS
+        The image wcs
+    nobj: int, optional
+        Send to create duplicate entries in example data at
+        more random ra/dec locations
     """
 
     radec_gen = CCDRadecGenerator(rng=rng, wcs=wcs)
 
     lines = EXAMPLE_DATA.split('\n')
+    if nobj is not None:
+        if nobj > len(lines):
+            lines = rng.choice(lines, size=nobj)
+        else:
+            lines = lines[:nobj]  # pragma: no cover
 
     ra, dec = radec_gen(n=len(lines))
 
@@ -82,6 +98,8 @@ def load_example_obsdata(band='i', altitude=DEFAULT_ALTITUDE):
     ----------
     band: str
         The band for the observation
+    altitude: float, optional
+        Set altitude.  Default is defaults.DEFAULT_ALTITUDE
 
     Returns
     -------
@@ -101,7 +119,9 @@ def load_example_obsdata(band='i', altitude=DEFAULT_ALTITUDE):
     return data
 
 
-def load_example_instcat(rng, band='i', detnum=88, altitude=DEFAULT_ALTITUDE):
+def load_example_instcat(
+    rng, band='i', detnum=88, altitude=DEFAULT_ALTITUDE, nobj=None,
+):
     """
     Load example observation data as one would find in an instcat
     header
@@ -114,6 +134,11 @@ def load_example_instcat(rng, band='i', detnum=88, altitude=DEFAULT_ALTITUDE):
         The band for the observation.  Default 'i'
     detnum: int, optional
         Id of detector, 1-189.  Default 88, an E2V sensor
+    altitude: float, optional
+        Set altitude.  Default is defaults.DEFAULT_ALTITUDE
+    nobj: int, optional
+        Send to create duplicate entries in example data at
+        more random ra/dec locations
 
     Returns
     -------
@@ -137,7 +162,7 @@ def load_example_instcat(rng, band='i', detnum=88, altitude=DEFAULT_ALTITUDE):
         fname = os.path.join(dir, 'instcat.txt')
         with open(fname, 'w') as fobj:
             write_example_instcat_header(fobj, band=band, altitude=altitude)
-            write_example_instcat_data(fobj=fobj, rng=rng, wcs=wcs)
+            write_example_instcat_data(fobj=fobj, rng=rng, wcs=wcs, nobj=nobj)
 
         obsdata = load_obsdata_from_instcat(fname)
 

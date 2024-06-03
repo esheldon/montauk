@@ -160,7 +160,14 @@ class Artist(object):
 
         Returns
         -------
-        galsim.Image
+        position data: dict
+            nphot: number of photons shot
+            nuse: number of phonons used
+            x: mean of x positions
+            xerr: error on mean of x positions
+            y: mean of y positions
+            yerr: error on mean of y positions
+            coord: CelestialCoord
         """
         import numpy as np
         from .utils import sigma_clip
@@ -197,6 +204,7 @@ class Artist(object):
             'xerr': xerr,
             'y': ymean,
             'yerr': yerr,
+            'coord': obj_coord,
         }
 
 

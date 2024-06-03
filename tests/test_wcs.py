@@ -1,7 +1,6 @@
 import galsim
 import imsim
 import mimsim
-from mimsim.utils import sigma_clip
 import numpy as np
 from tqdm import trange
 import pytest
@@ -96,6 +95,11 @@ def test_wcs_with_dcr(sed_type):
 
     obj = galsim.Gaussian(fwhm=0.2, flux=n_photons) * sed
 
+    wcs_indices = np.arange(nobj)
+    wcs_fitter = mimsim.wcs.WCSFitterByIndex(
+        wcs_indices[:100], reserve=wcs_indices[100:],
+    )
+
     ras = np.zeros(nobj)
     decs = np.zeros(nobj)
     xmeans = np.zeros(nobj)
@@ -116,28 +120,121 @@ def test_wcs_with_dcr(sed_type):
             stamp_size=stamp_size, local_wcs=local_wcs, psf=psf,
         )
 
+        assert i in wcs_fitter
+        wcs_fitter.add_entry(i, pos['x'], pos['y'], pos['coord'])
+
         ras[i] = sky_pos.ra.rad
         decs[i] = sky_pos.dec.rad
 
         xmeans[i] = pos['x']
         ymeans[i] = pos['y']
 
-    nuse = xmeans.size // 2
+    wcs_fitter.fit()
+    stats = wcs_fitter.get_stats()
+    check_range('xcoff', stats['xoff_mean'], stats['xoff_err'])
+    check_range('ycoff', stats['yoff_mean'], stats['yoff_err'])
 
-    new_wcs = galsim.FittedSIPWCS(
-        xmeans[:nuse], ymeans[:nuse], ras[:nuse], decs[:nuse], order=3,
-    )
-    xcheck, ycheck = new_wcs.radecToxy(
-        ra=ras[nuse:], dec=decs[nuse:],
-        units=galsim.radians,
-    )
-    xcoff = xmeans[nuse:] - xcheck
-    ycoff = ymeans[nuse:] - ycheck
 
-    xcoff_mean, _, xcoff_err = sigma_clip(xcoff)
-    ycoff_mean, _, ycoff_err = sigma_clip(ycoff)
-    check_range('xcoff', xcoff_mean, xcoff_err)
-    check_range('ycoff', ycoff_mean, ycoff_err)
+def test_wcs_in_runner():
+    """
+    test full SEDs without DCR since it can cause large errors
+    """
+    mimsim.logging.setup_logging('info')
+
+    seed = 9119
+
+    altitude = 25
+    nobj = 200
+    rng = np.random.default_rng(seed)
+    gs_rng = galsim.BaseDeviate(rng.integers(0, 2**30))
+
+    band = 'g'
+    detnum = 35
+
+    obsdata = mimsim.simtools.load_example_obsdata(
+        band=band,
+        altitude=altitude,
+    )
+
+    psf = galsim.Gaussian(fwhm=0.6)
+
+    dm_detector = mimsim.camera.make_dm_detector(detnum)
+
+    tree_rings = mimsim.tree_rings.make_tree_rings([detnum])
+    sensor = mimsim.sensor.make_sensor(
+        dm_detector=dm_detector,
+        tree_rings=tree_rings,
+        gs_rng=gs_rng,
+    )
+
+    wcs, icrf_to_field = mimsim.wcs.make_batoid_wcs(
+        obsdata=obsdata, dm_detector=dm_detector,
+    )
+    cat = mimsim.simtools.load_example_instcat(
+        rng=rng, band=band, detnum=detnum, nobj=nobj,
+    )
+    # for speed
+    cat.magnorm[:] = 23
+
+    optics = mimsim.optics.OpticsMaker(
+        altitude=obsdata['altitude'],
+        azimuth=obsdata['azimuth'],
+        boresight=obsdata['boresight'],
+        rot_tel_pos=obsdata['rotTelPos'],
+        band=obsdata['band'],
+        dm_detector=dm_detector,
+        wcs=wcs,
+        icrf_to_field=icrf_to_field,
+    )
+
+    photon_ops_maker = mimsim.photon_ops.PhotonOpsMaker(
+        exptime=obsdata['vistime'],
+        band=obsdata['band'],
+        optics=optics,
+    )
+
+    diffraction_fft = imsim.stamp.DiffractionFFT(
+        exptime=obsdata['vistime'],
+        altitude=obsdata['altitude'],
+        azimuth=obsdata['azimuth'],
+        rotTelPos=obsdata['rotTelPos'],
+    )
+
+    artist = mimsim.artist.Artist(
+        bandpass=obsdata['bandpass'],
+        sensor=sensor,
+        photon_ops_maker=photon_ops_maker,
+        diffraction_fft=diffraction_fft,
+        gs_rng=gs_rng,
+    )
+    sky_model = imsim.SkyModel(
+        exptime=obsdata['vistime'],
+        mjd=obsdata['mjd'],
+        bandpass=obsdata['bandpass'],
+    )
+
+    wcs_indices = np.arange(cat.getNObjects())
+    wcs_fitter = mimsim.wcs.WCSFitterByIndex(
+        wcs_indices[:100], reserve=wcs_indices[100:],
+    )
+
+    mimsim.runner.run_sim(
+        rng=rng,
+        cat=cat,
+        obsdata=obsdata,
+        artist=artist,
+        psf=psf,
+        wcs=wcs,
+        sky_model=sky_model,
+        sensor=sensor,
+        dm_detector=dm_detector,
+        wcs_fitter=wcs_fitter,
+        apply_pixel_areas=False,  # for speed
+    )
+
+    stats = wcs_fitter.get_stats()
+    check_range('xcoff', stats['xoff_mean'], stats['xoff_err'])
+    check_range('ycoff', stats['yoff_mean'], stats['yoff_err'])
 
 
 def check_range(name, val, err, nsigma=3.5):
