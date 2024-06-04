@@ -136,6 +136,77 @@ class Artist(object):
 
         return stamp
 
+    def get_pos(
+        self, obj, obj_coord, image_pos, stamp_size, local_wcs, psf,
+        n_photons=10_000,
+    ):
+        """
+        Draw with photons
+
+        obj: galsim object
+            The galsim object to draw
+        obj_coord: galsim.CelestialCoord
+            The ra, dec
+        image_pos: galsim.PositionD
+            Position on image
+        stamp_size: int
+            The size of the stamp
+        local_wcs: galsim local wcs
+            From wcs.local
+        psf: galsim psf
+            The psf
+        n_photons: int, optional
+            Number of photons to use for position, default 10_000
+
+        Returns
+        -------
+        position data: dict
+            nphot: number of photons shot
+            nuse: number of phonons used
+            x: mean of x positions
+            xerr: error on mean of x positions
+            y: mean of y positions
+            yerr: error on mean of y positions
+            coord: CelestialCoord
+        """
+        import numpy as np
+        from .utils import sigma_clip
+
+        photon_ops = self.photon_ops_maker(obj_coord)
+
+        stamp = obj.drawImage(
+            bandpass=self.bandpass,
+            nx=stamp_size,
+            ny=stamp_size,
+            center=image_pos,
+            wcs=local_wcs,
+            method='phot',
+            rng=self.gs_rng,
+            n_photons=n_photons,
+            photon_ops=[psf] + photon_ops,
+            sensor=self.sensor,
+            save_photons=True,
+        )
+
+        x = stamp.photons.x
+        y = stamp.photons.y
+        flux = stamp.photons.flux
+
+        wgood, = np.where(np.isfinite(x) & np.isfinite(y) & (flux > 0))
+
+        cen = stamp.true_center
+        xmean, _, xerr = sigma_clip(cen.x + x[wgood])
+        ymean, _, yerr = sigma_clip(cen.y + y[wgood])
+        return {
+            'nphot': n_photons,
+            'nuse': wgood.size,
+            'x': xmean,
+            'xerr': xerr,
+            'y': ymean,
+            'yerr': yerr,
+            'coord': obj_coord,
+        }
+
 
 def get_faint_version_of_obj(obj, bandpass):
     """

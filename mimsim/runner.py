@@ -12,8 +12,8 @@ def run_sim(
     sky_gradient=None,
     vignetting=None,
     fringing=None,
-    indices=None,
     apply_pixel_areas=True,
+    calc_xy_indices=None,
     selector=lambda d, i: True,
 ):
     """
@@ -50,21 +50,22 @@ def run_sim(
         Must have an apply(image) method
     fringing: fringing object, optional
         Must have an apply(image) method
-    indices: sequence, optional
-        Optionally limit to drawing the specified objects.  We need this
-        because the imsim.InstCatalog cannot read in a subset of the data, and
-        there is no way to extract a subset from the InstCatalog.
     apply_pixel_areas: bool, optional
         If set to False, do not apply pixel areas.  This saves a large amount
         of time before drawing begins, good for testing.  Default True
+    calc_xy_indices: array, optional
+        If sent, objects corresponding to these indices will have their
+        realized x,y positions calculated and stored in the truth output as
+        realized_x and realized_y
     selector: function
-        A way to select on the catalog, must be callable with selector(cat,
-        iobj) and return True if the object is to be kept
+        A way to select on the catalog, must be callable with
+            selector(cat, iobj)
+        and return True if the object is to be kept
     """
     import numpy as np
     import logging
     import galsim
-    from tqdm import tqdm
+    from tqdm import trange
     import imsim
     from imsim.psf_utils import get_fft_psf_maybe
     from .sky import make_sky_image
@@ -95,25 +96,23 @@ def run_sim(
     )
     med_noise_var = np.median(sky_image.array)
 
-    if indices is None:
-        indices = np.arange(cat.getNObjects())
-    else:
-        onobj = cat.getNObjects()
-        logger.info(f'will limit to {indices.size}/{onobj} objects')
-
-    nobj = indices.size
+    nobj = cat.getNObjects()
 
     nskipped_low_flux = 0
     nskipped_select = 0
     nskipped_bounds = 0
 
-    truth = make_truth(nobj)
+    truth = make_truth(nobj, with_realized_pos=calc_xy_indices is not None)
 
-    for itruth, iobj in enumerate(tqdm(indices)):
+    for iobj in trange(nobj):
 
         obj_coord = cat.world_pos[iobj]
-        truth['ra'][itruth] = obj_coord.ra.deg
-        truth['dec'][itruth] = obj_coord.dec.deg
+        image_pos = cat.image_pos[iobj]
+
+        truth['x'][iobj] = image_pos.x
+        truth['y'][iobj] = image_pos.y
+        truth['ra'][iobj] = obj_coord.ra.deg
+        truth['dec'][iobj] = obj_coord.dec.deg
 
         if not selector(cat, iobj):
             nskipped_select += 1
@@ -122,7 +121,7 @@ def run_sim(
         obj = cat.getObj(index=iobj, rng=gs_rng, exptime=obsdata['exptime'])
 
         flux = obj.calculateFlux(obsdata['bandpass'])
-        truth['nominal_flux'][itruth] = flux
+        truth['nominal_flux'][iobj] = flux
 
         if flux <= 0:  # pragma: no cover
             nskipped_low_flux += 1
@@ -131,10 +130,6 @@ def run_sim(
         imsim.stamp.LSST_SiliconBuilder._fix_seds(
             prof=obj, bandpass=obsdata['bandpass'], logger=logger,
         )
-
-        image_pos = cat.image_pos[iobj]
-        truth['x'][itruth] = image_pos.x
-        truth['y'][itruth] = image_pos.y
 
         psf_at_pos = eval_psf(psf=psf, image_pos=image_pos)
 
@@ -189,15 +184,25 @@ def run_sim(
             nskipped_bounds += 1
             continue
 
+        # if wcs_fitter is not None and iobj in wcs_fitter:
+        if calc_xy_indices is not None and iobj in calc_xy_indices:
+            posdata = artist.get_pos(
+                obj=obj, obj_coord=obj_coord, image_pos=image_pos,
+                stamp_size=stamp_size, local_wcs=local_wcs,
+                psf=psf_at_pos,
+            )
+            truth['realized_x'][iobj] = posdata['x']
+            truth['realized_y'][iobj] = posdata['y']
+
         image[bounds] += stamp[bounds]
-        truth['realized_flux'][itruth] = stamp.added_flux
-        truth['skipped'][itruth] = False
+        truth['realized_flux'][iobj] = stamp.added_flux
+        truth['skipped'][iobj] = False
 
     image.array[:, :] += np_rng.poisson(lam=sky_image.array)
 
     # should go in after poisson noise
-    logger.info('adding cosmic rays')
     if cosmics is not None:
+        logger.info('adding cosmic rays')
         cosmics.add(image)
 
     nskipped = nskipped_select + nskipped_low_flux + nskipped_bounds
@@ -209,7 +214,7 @@ def run_sim(
     return image, sky_image, truth
 
 
-def make_truth(nobj):
+def make_truth(nobj, with_realized_pos=False):
     """
     Make the truth for run_sim.  The catalog will have fields
         ('skipped', bool),
@@ -240,9 +245,19 @@ def make_truth(nobj):
         ('nominal_flux', 'f4'),
         ('realized_flux', 'f4'),
     ]
+    if with_realized_pos:
+        dtype += [
+            ('realized_x', 'f4'),
+            ('realized_y', 'f4'),
+        ]
     st = np.zeros(nobj, dtype=dtype)
     st['skipped'] = True
     st['realized_flux'] = np.nan
+
+    if with_realized_pos:
+        st['realized_x'] = np.nan
+        st['realized_y'] = np.nan
+
     return st
 
 
