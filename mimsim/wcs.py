@@ -78,139 +78,85 @@ def get_pixel_scale(wcs, bbox):
     return np.sqrt(wcs.pixelArea(galsim.PositionD(x, y)))
 
 
-class WCSFitterByIndex:
+def fit_wcs(x, y, ra, dec, units, itrain, ireserve, order=3):
     """
-    A WCS fitter with indices into a catalog to provide
-    training and validation sets
+    Fit a SIPWCS to the input data
 
     Parameters
     ----------
-    indices: array
-        Array of indices
-    reserve: array
-        Array of indices used for validation
+    x: array
+        Array of x positions for training
+    y: array
+        Array of y positions for training
+    ra: array
+        Array of ra for training
+    dec: array
+        Array of dec for training
+    units: galsim.AngleUnit
+        The units of the ra/dec input
+    itrain: array
+        Array of indices to use for training
+    ireserve: array
+        Array of indices to reserve for validation
     order: int, optional
-        Default 3
+        Order of fit, default 3
+
+    Returns
+    -------
+    a tuple of galsim.GSFitsWCS, stats
+        stats is a dict with entries
+            ntrain: number used for training
+            nreserve: number used for validation
+            xoff_mean: mean of x offset between predicted and validation
+            xoff_err: uncertainty in mean of x offset between predicted
+                and validation
+            yoff_mean: mean of y offset between predicted and validation
+            yoff_err: uncertainty in mean of y offset between predicted
+                and validation
     """
-    def __init__(self, indices, reserve, order=3):
-        import numpy as np
-        self.indices = indices
-        self.reserve = reserve
+    import numpy as np
+    import galsim
+    from .utils import sigma_clip
 
-        self.current = 0
-        self.x = np.zeros(self.indices.size)
-        self.y = np.zeros(self.indices.size)
-        self.rarad = np.zeros(self.indices.size)
-        self.decrad = np.zeros(self.indices.size)
+    if units == galsim.degrees:
+        ra = np.radians(ra)
+        dec = np.radians(dec)
 
-        self.current_res = 0
-        self.x_res = np.zeros(self.reserve.size)
-        self.y_res = np.zeros(self.reserve.size)
-        self.rarad_res = np.zeros(self.reserve.size)
-        self.decrad_res = np.zeros(self.reserve.size)
+    xtrain = x[itrain]
+    ytrain = y[itrain]
+    ratrain = ra[itrain]
+    dectrain = dec[itrain]
 
-        self.order = order
+    wt, = np.where(np.isfinite(xtrain))
+    wcs = galsim.FittedSIPWCS(
+        xtrain[wt], ytrain[wt], ratrain[wt], dectrain[wt], order=order,
+    )
 
-    def __contains__(self, index):
-        return index in self.indices or index in self.reserve
+    xreserve = x[ireserve]
+    yreserve = y[ireserve]
+    rareserve = ra[ireserve]
+    decreserve = dec[ireserve]
 
-    def add_entry(self, index, x, y, coord):
-        """
-        Add an entry to the catalog
+    wr, = np.where(np.isfinite(xreserve))
+    xcheck, ycheck = wcs.radecToxy(
+        ra=rareserve[wr], dec=decreserve[wr],
+        units=galsim.radians,
+    )
 
-        Parameters
-        ----------
-        index: int
-            An index either for the training or validation set
-        x: float
-            x position of entry
-        y: float
-            y position of entry
-        coord: galsim.CelestialCoord
-            ra, dec of object
-        """
-        if index in self.indices:
-            self.x[self.current] = x
-            self.y[self.current] = y
-            self.rarad[self.current] = coord.ra.rad
-            self.decrad[self.current] = coord.dec.rad
-            self.current += 1
-        elif index in self.reserve:
-            self.x_res[self.current_res] = x
-            self.y_res[self.current_res] = y
-            self.rarad_res[self.current_res] = coord.ra.rad
-            self.decrad_res[self.current_res] = coord.dec.rad
-            self.current_res += 1
+    xcoff = xcheck - xreserve[wr]
+    ycoff = ycheck - yreserve[wr]
 
-    def fit(self):
-        """
-        Fit the WCS.  The wcs is returned and is also set
-        as an attribute of the object as .wcs
-
-        Returns
-        -------
-        galsim.GSFitsWCS
-
-        """
-        import galsim
-
-        # some may have been skipped
-        if self.current < self.x.size:  # pragma: no cover
-            self.x = self.x[:self.current]
-            self.y = self.y[:self.current]
-            self.radrad = self.rarad[:self.current]
-            self.decrad = self.decrad[:self.current]
-
-        if self.current_res < self.x.size:  # pragma: no cover
-            self.x_res = self.x_res[:self.current]
-            self.y_res = self.y_res[:self.current]
-            self.radrad_res = self.rarad_res[:self.current]
-            self.decrad_res = self.decrad_res[:self.current]
-
-        self.wcs = galsim.FittedSIPWCS(
-            self.x, self.y, self.rarad, self.decrad,
-            order=self.order,
-        )
-        return self.wcs
-
-    def get_stats(self):
-        """
-        Get stats for the fit using the validation set
-
-        Returns
-        -------
-        stats: dict
-            xoff_mean: The sigma clipped mean of the x offset,
-                xpredicted - xmeasured
-            xoff_err: The sigma clipped erroro on the mean of the x offset,
-                xpredicted - xmeasured
-            yoff_mean: The sigma clipped mean of the y offset,
-                ypredicted - ymeasured
-            yoff_err: The sigma clipped erroro on the mean of the y offset,
-                ypredicted - ymeasured
-        """
-        import galsim
-        from .utils import sigma_clip
-
-        if not hasattr(self, 'xcheck'):
-            self.xcheck, self.ycheck = self.wcs.radecToxy(
-                ra=self.rarad_res, dec=self.decrad_res,
-                units=galsim.radians,
-            )
-
-        xcoff = self.xcheck - self.x_res
-        ycoff = self.ycheck - self.y_res
-
-        xcoff_mean, _, xcoff_err = sigma_clip(xcoff)
-        ycoff_mean, _, ycoff_err = sigma_clip(ycoff)
-        return {
-            'ntrain': self.x.size,
-            'nreserve': self.x_res.size,
-            'xoff_mean': xcoff_mean,
-            'xoff_err': xcoff_err,
-            'yoff_mean': ycoff_mean,
-            'yoff_err': ycoff_err,
-        }
+    xcoff_mean, _, xcoff_err = sigma_clip(xcoff)
+    ycoff_mean, _, ycoff_err = sigma_clip(ycoff)
+    stats = {
+        'ntrain': wt.size,
+        'nreserve': wr.size,
+        'xoff_mean': xcoff_mean,
+        'xoff_err': xcoff_err,
+        'yoff_mean': ycoff_mean,
+        'yoff_err': ycoff_err,
+    }
+    return wcs, stats
 
 
 # class BatoidDCRWCSFactory(imsim.batoid_wcs.BatoidWCSFactory):

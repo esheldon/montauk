@@ -117,29 +117,23 @@ def test_runner_smoke():
     'options',
     [
         {'band': 'i',
-         'limit': False,
          'select': False,
          'cosmics_and_diff_flux': True},
         {'band': 'i',
-         'limit': False,
          'select': False,
          'cosmics_and_diff_flux': False},
 
         {'band': 'i',
-         'limit': False,
          'select': True,
          'cosmics_and_diff_flux': True},
 
         {'band': 'i',
-         'limit': True,
          'select': False,
          'cosmics_and_diff_flux': False},
         {'band': 'i',
-         'limit': False,
          'select': True,
          'cosmics_and_diff_flux': False},
         {'band': 'Y',
-         'limit': False,
          'select': False,
          'cosmics_and_diff_flux': False}
     ]
@@ -152,7 +146,6 @@ def test_runner(options):
     gs_rng = galsim.BaseDeviate(rng.integers(0, 2**60))
 
     band = options['band']
-    limit = options['limit']
     select = options['select']
 
     # 88 is E2V, which we want for fringing
@@ -179,13 +172,7 @@ def test_runner(options):
         # this will be skipped
         cat.magnorm[-1] = 5
 
-    if limit:
-        # indices = np.arange(2)
-        indices = np.array([1, 3])
-        nobj = indices.size
-    else:
-        nobj = cat.getNObjects()
-        indices = None
+    nobj = cat.getNObjects()
 
     def example_selector(d, i):
         return d.magnorm[i] > magmax
@@ -296,15 +283,11 @@ def test_runner(options):
         sky_gradient=gradient,
         vignetting=vignetter,
         fringing=fringer,
-        indices=indices,
         apply_pixel_areas=False,  # for speed
         selector=selector,
     )
     assert image.array.shape == sky_image.array.shape
-    if limit:
-        assert truth.size == indices.size
-    else:
-        assert truth.size == cat.getNObjects()
+    assert truth.size == cat.getNObjects()
 
     if select:
         assert np.sum(~truth['skipped']) == select_num

@@ -95,11 +95,6 @@ def test_wcs_with_dcr(sed_type):
 
     obj = galsim.Gaussian(fwhm=0.2, flux=n_photons) * sed
 
-    wcs_indices = np.arange(nobj)
-    wcs_fitter = mimsim.wcs.WCSFitterByIndex(
-        wcs_indices[:100], reserve=wcs_indices[100:],
-    )
-
     ras = np.zeros(nobj)
     decs = np.zeros(nobj)
     xmeans = np.zeros(nobj)
@@ -120,17 +115,23 @@ def test_wcs_with_dcr(sed_type):
             stamp_size=stamp_size, local_wcs=local_wcs, psf=psf,
         )
 
-        assert i in wcs_fitter
-        wcs_fitter.add_entry(i, pos['x'], pos['y'], pos['coord'])
-
         ras[i] = sky_pos.ra.rad
         decs[i] = sky_pos.dec.rad
 
         xmeans[i] = pos['x']
         ymeans[i] = pos['y']
 
-    wcs_fitter.fit()
-    stats = wcs_fitter.get_stats()
+    mid = nobj // 2
+    wcs, stats = mimsim.wcs.fit_wcs(
+        x=xmeans,
+        y=ymeans,
+        ra=ras,
+        dec=decs,
+        units=galsim.radians,
+        itrain=np.arange(mid),
+        ireserve=np.arange(mid, nobj),
+    )
+
     check_range('xcoff', stats['xoff_mean'], stats['xoff_err'])
     check_range('ycoff', stats['yoff_mean'], stats['yoff_err'])
 
@@ -214,11 +215,8 @@ def test_wcs_in_runner():
     )
 
     wcs_indices = np.arange(cat.getNObjects())
-    wcs_fitter = mimsim.wcs.WCSFitterByIndex(
-        wcs_indices[:100], reserve=wcs_indices[100:],
-    )
 
-    mimsim.runner.run_sim(
+    image, sky_image, truth = mimsim.runner.run_sim(
         rng=rng,
         cat=cat,
         obsdata=obsdata,
@@ -228,11 +226,21 @@ def test_wcs_in_runner():
         sky_model=sky_model,
         sensor=sensor,
         dm_detector=dm_detector,
-        wcs_fitter=wcs_fitter,
+        calc_xy_indices=wcs_indices,
         apply_pixel_areas=False,  # for speed
     )
 
-    stats = wcs_fitter.get_stats()
+    mid = nobj // 2
+    wcs, stats = mimsim.wcs.fit_wcs(
+        x=truth['realized_x'][wcs_indices],
+        y=truth['realized_y'][wcs_indices],
+        ra=truth['ra'][wcs_indices],
+        dec=truth['dec'][wcs_indices],
+        units=galsim.degrees,
+        itrain=np.arange(mid),
+        ireserve=np.arange(mid, nobj),
+    )
+
     check_range('xcoff', stats['xoff_mean'], stats['xoff_err'])
     check_range('ycoff', stats['yoff_mean'], stats['yoff_err'])
 
