@@ -1,10 +1,10 @@
-import mimsim
+import montauk
 import galsim
 
 
 def test_latitude():
     from lsst.obs.lsst.translators.lsst import SIMONYI_LOCATION as RUBIN_LOC
-    lat = mimsim.utils.get_latitude()
+    lat = montauk.utils.get_latitude()
 
     expected = RUBIN_LOC.lat.deg * galsim.degrees
 
@@ -12,9 +12,9 @@ def test_latitude():
 
 
 def test_extract_boresight():
-    obsdata = mimsim.simtools.load_example_obsdata()
+    obsdata = montauk.simtools.load_example_obsdata()
 
-    boresight = mimsim.utils.extract_boresight(obsdata)
+    boresight = montauk.utils.extract_boresight(obsdata)
     expected = galsim.CelestialCoord(
         obsdata['rightascension'] * galsim.degrees,
         obsdata['declination'] * galsim.degrees,

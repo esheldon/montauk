@@ -1,13 +1,13 @@
 import galsim
-import mimsim
+import montauk
 
 
 def test_focus_depth():
     for band in 'ugrizYy':
-        focus_depth = mimsim.optics.make_focus_depth(band)
+        focus_depth = montauk.optics.make_focus_depth(band)
 
         expected = galsim.FocusDepth(
-            mimsim.optics.get_focus_depth_value(band)
+            montauk.optics.get_focus_depth_value(band)
         )
         assert focus_depth == expected
 
@@ -18,14 +18,14 @@ def test_optics_maker():
     gs_rng = galsim.BaseDeviate(seed)
 
     detnum = 91
-    dm_detector = mimsim.camera.make_dm_detector(detnum)
-    obsdata = mimsim.simtools.load_example_obsdata()
+    dm_detector = montauk.camera.make_dm_detector(detnum)
+    obsdata = montauk.simtools.load_example_obsdata()
 
-    wcs, icrf_to_field = mimsim.wcs.make_batoid_wcs(
+    wcs, icrf_to_field = montauk.wcs.make_batoid_wcs(
         obsdata=obsdata, dm_detector=dm_detector,
     )
 
-    optics = mimsim.optics.OpticsMaker(
+    optics = montauk.optics.OpticsMaker(
         altitude=obsdata['altitude'],
         azimuth=obsdata['azimuth'],
         boresight=obsdata['boresight'],
@@ -47,7 +47,7 @@ def test_optics_maker():
     local_wcs = wcs.local(image_pos=image_pos)
 
     time_sampler = galsim.TimeSampler(exptime=obsdata['vistime'])
-    pupil_sampler = mimsim.telescope.make_pupil_sampler()
+    pupil_sampler = montauk.telescope.make_pupil_sampler()
 
     time_sampler.applyTo(pa, rng=gs_rng)
     assert pa.x.std() == 0

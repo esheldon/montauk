@@ -1,5 +1,5 @@
 import galsim
-import mimsim
+import montauk
 import pytest
 
 
@@ -8,9 +8,9 @@ def test_make_sensor_smoke():
     gs_rng = galsim.BaseDeviate(seed)
 
     detnum = 15
-    dm_detector = mimsim.camera.make_dm_detector(detnum)
+    dm_detector = montauk.camera.make_dm_detector(detnum)
 
-    _ = mimsim.sensor.make_sensor(dm_detector=dm_detector, gs_rng=gs_rng)
+    _ = montauk.sensor.make_sensor(dm_detector=dm_detector, gs_rng=gs_rng)
 
 
 @pytest.mark.parametrize('use_tree_rings', [False, True])
@@ -20,11 +20,11 @@ def test_make_sensor_tree_rings(use_tree_rings):
 
     detnums = [85, 120]
     dm_detectors = [
-        mimsim.camera.make_dm_detector(detnum)
+        montauk.camera.make_dm_detector(detnum)
         for detnum in detnums
     ]
     if use_tree_rings:
-        tree_rings = mimsim.tree_rings.make_tree_rings(detnums)
+        tree_rings = montauk.tree_rings.make_tree_rings(detnums)
         assert len(tree_rings.info) == len(dm_detectors)
         for det in dm_detectors:
             assert det.getName() in tree_rings.info
@@ -34,7 +34,7 @@ def test_make_sensor_tree_rings(use_tree_rings):
     for i in range(len(detnums)):
         dm_detector = dm_detectors[i]
 
-        sensor = mimsim.sensor.make_sensor(
+        sensor = montauk.sensor.make_sensor(
             dm_detector=dm_detector, gs_rng=gs_rng, tree_rings=tree_rings,
         )
         if use_tree_rings:

@@ -1,5 +1,5 @@
 import galsim
-import mimsim
+import montauk
 import pytest
 
 
@@ -7,10 +7,10 @@ import pytest
 def test_photon_ops_maker(use_dcr):
 
     detnum = 91
-    dm_detector = mimsim.camera.make_dm_detector(detnum)
-    obsdata = mimsim.simtools.load_example_obsdata()
+    dm_detector = montauk.camera.make_dm_detector(detnum)
+    obsdata = montauk.simtools.load_example_obsdata()
 
-    wcs, icrf_to_field = mimsim.wcs.make_batoid_wcs(
+    wcs, icrf_to_field = montauk.wcs.make_batoid_wcs(
         obsdata=obsdata, dm_detector=dm_detector,
     )
 
@@ -18,14 +18,14 @@ def test_photon_ops_maker(use_dcr):
     sky_pos = wcs.toWorld(image_pos)
 
     if use_dcr:
-        dcr = mimsim.dcr.DCRMaker(
+        dcr = montauk.dcr.DCRMaker(
             bandpass=obsdata['bandpass'],
             hour_angle=obsdata['HA'],
         )
     else:
         dcr = None
 
-    optics = mimsim.optics.OpticsMaker(
+    optics = montauk.optics.OpticsMaker(
         altitude=obsdata['altitude'],
         azimuth=obsdata['azimuth'],
         boresight=obsdata['boresight'],
@@ -36,7 +36,7 @@ def test_photon_ops_maker(use_dcr):
         icrf_to_field=icrf_to_field,
     )
 
-    photon_ops_maker = mimsim.photon_ops.PhotonOpsMaker(
+    photon_ops_maker = montauk.photon_ops.PhotonOpsMaker(
         exptime=obsdata['vistime'],
         band=obsdata['band'],
         dcr=dcr,
@@ -46,7 +46,7 @@ def test_photon_ops_maker(use_dcr):
 
     expected = [
         galsim.TimeSampler(t0=0.0, exptime=obsdata['vistime']),
-        mimsim.telescope.make_pupil_sampler(),
+        montauk.telescope.make_pupil_sampler(),
     ]
 
     if use_dcr:
@@ -54,8 +54,8 @@ def test_photon_ops_maker(use_dcr):
 
     expected += [
         optics(sky_pos),
-        mimsim.optics.make_focus_depth(obsdata['band']),
-        mimsim.optics.make_refraction(),
+        montauk.optics.make_focus_depth(obsdata['band']),
+        montauk.optics.make_refraction(),
     ]
 
     assert len(ops) == len(expected)

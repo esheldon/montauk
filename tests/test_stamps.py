@@ -1,6 +1,6 @@
 import galsim
 import imsim
-import mimsim
+import montauk
 import pytest
 
 
@@ -20,9 +20,9 @@ def test_stamp_size(obj_type):
     else:
         obj = galsim.Exponential(half_light_radius=0.5)
 
-    obj = obj * mimsim.seds.get_trivial_sed()
+    obj = obj * montauk.seds.get_trivial_sed()
 
-    obsdata = mimsim.simtools.load_example_obsdata()
+    obsdata = montauk.simtools.load_example_obsdata()
 
     sky_model = imsim.SkyModel(
         exptime=obsdata['vistime'],
@@ -35,20 +35,20 @@ def test_stamp_size(obj_type):
     sky_level = 0.2**2 * sky_level_density
 
     for flux in [10, 99, 101, 1.e6, 1.e8]:
-        stamp_size = mimsim.stamps.get_stamp_size(
+        stamp_size = montauk.stamps.get_stamp_size(
             obj=obj, flux=flux, noise_var=sky_level, obsdata=obsdata,
         )
         print('obj_type:', obj_type, 'flux:', flux, 'stamp_size:', stamp_size)
         if obj_type == 'gal':
-            assert stamp_size == mimsim.defaults.MIN_STAMP_SIZE
+            assert stamp_size == montauk.defaults.MIN_STAMP_SIZE
         else:
             assert stamp_size == STAR_EXPECTED[flux]
 
 
 @pytest.mark.parametrize('flux', [100, 1.e7])
 def test_initial_draw_method(flux):
-    from mimsim.defaults import FFT_FLUX_THRESH, FFT_SB_THRESH
-    draw_method = mimsim.stamps.get_initial_draw_method(flux)
+    from montauk.defaults import FFT_FLUX_THRESH, FFT_SB_THRESH
+    draw_method = montauk.stamps.get_initial_draw_method(flux)
 
     if flux < FFT_FLUX_THRESH or flux < FFT_SB_THRESH:
         assert draw_method == 'phot'

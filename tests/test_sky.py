@@ -1,6 +1,6 @@
 import galsim
 import imsim
-import mimsim
+import montauk
 import numpy as np
 import pytest
 import logging
@@ -43,10 +43,10 @@ def test_make_sky(options):
 
     logger = logging.getLogger('imsim-runner')
 
-    dm_detector = mimsim.camera.make_dm_detector(detnum)
-    obsdata = mimsim.simtools.load_example_obsdata()
+    dm_detector = montauk.camera.make_dm_detector(detnum)
+    obsdata = montauk.simtools.load_example_obsdata()
 
-    wcs, _ = mimsim.wcs.make_batoid_wcs(
+    wcs, _ = montauk.wcs.make_batoid_wcs(
         obsdata=obsdata, dm_detector=dm_detector,
     )
 
@@ -57,27 +57,27 @@ def test_make_sky(options):
     )
 
     if options['gradient']:
-        gradient = mimsim.sky.FixedSkyGradient(sky_model)
+        gradient = montauk.sky.FixedSkyGradient(sky_model)
     else:
         gradient = None
 
     if options['vignetting']:
-        vignetter = mimsim.vignetting.Vignetter(dm_detector)
+        vignetter = montauk.vignetting.Vignetter(dm_detector)
     else:
         vignetter = None
 
     if options['fringing']:
-        assert mimsim.fringing.should_apply_fringing(
+        assert montauk.fringing.should_apply_fringing(
             band=band, dm_detector=dm_detector,
         )
-        fringer = mimsim.fringing.Fringer(
+        fringer = montauk.fringing.Fringer(
             boresight=obsdata['boresight'], dm_detector=dm_detector,
         )
     else:
         fringer = None
 
     if options['sensor_areas']:
-        sensor = mimsim.sensor.make_sensor(
+        sensor = montauk.sensor.make_sensor(
             dm_detector=dm_detector, gs_rng=gs_rng,
         )
     else:
@@ -86,7 +86,7 @@ def test_make_sky(options):
     bbox = dm_detector.getBBox()
     nx = bbox.width
     ny = bbox.height
-    image = mimsim.sky.make_sky_image(
+    image = montauk.sky.make_sky_image(
         sky_model=sky_model,
         wcs=wcs,
         nx=nx,
@@ -132,10 +132,10 @@ def test_make_sky(options):
 def test_gradient():
 
     detnum = 88
-    dm_detector = mimsim.camera.make_dm_detector(detnum)
-    obsdata = mimsim.simtools.load_example_obsdata()
+    dm_detector = montauk.camera.make_dm_detector(detnum)
+    obsdata = montauk.simtools.load_example_obsdata()
 
-    wcs, _ = mimsim.wcs.make_batoid_wcs(
+    wcs, _ = montauk.wcs.make_batoid_wcs(
         obsdata=obsdata, dm_detector=dm_detector,
     )
 
@@ -145,7 +145,7 @@ def test_gradient():
         bandpass=obsdata['bandpass'],
     )
 
-    gradient = mimsim.sky.FixedSkyGradient(sky_model)
+    gradient = montauk.sky.FixedSkyGradient(sky_model)
 
     bbox = dm_detector.getBBox()
     image = galsim.ImageD(bbox.width, bbox.height, wcs=wcs)

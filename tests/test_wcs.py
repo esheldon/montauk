@@ -1,6 +1,6 @@
 import galsim
 import imsim
-import mimsim
+import montauk
 import numpy as np
 from tqdm import trange
 import pytest
@@ -8,7 +8,7 @@ import pytest
 
 @pytest.mark.parametrize('sed_type', ['narrow', 'trivial'])
 def test_wcs_with_dcr(sed_type):
-    mimsim.logging.setup_logging('info')
+    montauk.logging.setup_logging('info')
 
     seed = 9119
 
@@ -22,7 +22,7 @@ def test_wcs_with_dcr(sed_type):
     band = 'g'
     detnum = 35
 
-    obsdata = mimsim.simtools.load_example_obsdata(
+    obsdata = montauk.simtools.load_example_obsdata(
         band=band,
         altitude=altitude,
     )
@@ -32,7 +32,7 @@ def test_wcs_with_dcr(sed_type):
 
     # SED not centered at the effective wavelength
     if sed_type == 'narrow':
-        sed = mimsim.seds.get_narrow_sed(
+        sed = montauk.seds.get_narrow_sed(
             wavemin=bp.blue_limit,
             wavemax=bp.red_limit,
             wave0=bp.blue_limit + (bp.red_limit - bp.blue_limit) / 4,
@@ -40,27 +40,27 @@ def test_wcs_with_dcr(sed_type):
             npts=1000,
         )
     else:
-        sed = mimsim.seds.get_trivial_sed()
+        sed = montauk.seds.get_trivial_sed()
 
-    dm_detector = mimsim.camera.make_dm_detector(detnum)
+    dm_detector = montauk.camera.make_dm_detector(detnum)
 
     # dcr will be relative to the effective wavelength of the bandpass
-    dcr = mimsim.dcr.DCRMaker(
+    dcr = montauk.dcr.DCRMaker(
         bandpass=obsdata['bandpass'],
         hour_angle=obsdata['HA'],
     )
 
-    tree_rings = mimsim.tree_rings.make_tree_rings([detnum])
-    sensor = mimsim.sensor.make_sensor(
+    tree_rings = montauk.tree_rings.make_tree_rings([detnum])
+    sensor = montauk.sensor.make_sensor(
         dm_detector=dm_detector,
         tree_rings=tree_rings,
         gs_rng=gs_rng,
     )
 
-    wcs, icrf_to_field = mimsim.wcs.make_batoid_wcs(
+    wcs, icrf_to_field = montauk.wcs.make_batoid_wcs(
         obsdata=obsdata, dm_detector=dm_detector,
     )
-    optics = mimsim.optics.OpticsMaker(
+    optics = montauk.optics.OpticsMaker(
         altitude=obsdata['altitude'],
         azimuth=obsdata['azimuth'],
         boresight=obsdata['boresight'],
@@ -71,7 +71,7 @@ def test_wcs_with_dcr(sed_type):
         icrf_to_field=icrf_to_field,
     )
 
-    photon_ops_maker = mimsim.photon_ops.PhotonOpsMaker(
+    photon_ops_maker = montauk.photon_ops.PhotonOpsMaker(
         exptime=obsdata['vistime'],
         band=obsdata['band'],
         dcr=dcr,
@@ -85,7 +85,7 @@ def test_wcs_with_dcr(sed_type):
         rotTelPos=obsdata['rotTelPos'],
     )
 
-    artist = mimsim.artist.Artist(
+    artist = montauk.artist.Artist(
         bandpass=obsdata['bandpass'],
         sensor=sensor,
         photon_ops_maker=photon_ops_maker,
@@ -122,7 +122,7 @@ def test_wcs_with_dcr(sed_type):
         ymeans[i] = pos['y']
 
     mid = nobj // 2
-    wcs, stats = mimsim.wcs.fit_wcs(
+    wcs, stats = montauk.wcs.fit_wcs(
         x=xmeans,
         y=ymeans,
         ra=ras,
@@ -140,7 +140,7 @@ def test_wcs_in_runner():
     """
     test full SEDs without DCR since it can cause large errors
     """
-    mimsim.logging.setup_logging('info')
+    montauk.logging.setup_logging('info')
 
     seed = 9119
 
@@ -152,32 +152,32 @@ def test_wcs_in_runner():
     band = 'g'
     detnum = 35
 
-    obsdata = mimsim.simtools.load_example_obsdata(
+    obsdata = montauk.simtools.load_example_obsdata(
         band=band,
         altitude=altitude,
     )
 
     psf = galsim.Gaussian(fwhm=0.6)
 
-    dm_detector = mimsim.camera.make_dm_detector(detnum)
+    dm_detector = montauk.camera.make_dm_detector(detnum)
 
-    tree_rings = mimsim.tree_rings.make_tree_rings([detnum])
-    sensor = mimsim.sensor.make_sensor(
+    tree_rings = montauk.tree_rings.make_tree_rings([detnum])
+    sensor = montauk.sensor.make_sensor(
         dm_detector=dm_detector,
         tree_rings=tree_rings,
         gs_rng=gs_rng,
     )
 
-    wcs, icrf_to_field = mimsim.wcs.make_batoid_wcs(
+    wcs, icrf_to_field = montauk.wcs.make_batoid_wcs(
         obsdata=obsdata, dm_detector=dm_detector,
     )
-    cat = mimsim.simtools.load_example_instcat(
+    cat = montauk.simtools.load_example_instcat(
         rng=rng, band=band, detnum=detnum, nobj=nobj,
     )
     # for speed
     cat.magnorm[:] = 23
 
-    optics = mimsim.optics.OpticsMaker(
+    optics = montauk.optics.OpticsMaker(
         altitude=obsdata['altitude'],
         azimuth=obsdata['azimuth'],
         boresight=obsdata['boresight'],
@@ -188,7 +188,7 @@ def test_wcs_in_runner():
         icrf_to_field=icrf_to_field,
     )
 
-    photon_ops_maker = mimsim.photon_ops.PhotonOpsMaker(
+    photon_ops_maker = montauk.photon_ops.PhotonOpsMaker(
         exptime=obsdata['vistime'],
         band=obsdata['band'],
         optics=optics,
@@ -201,7 +201,7 @@ def test_wcs_in_runner():
         rotTelPos=obsdata['rotTelPos'],
     )
 
-    artist = mimsim.artist.Artist(
+    artist = montauk.artist.Artist(
         bandpass=obsdata['bandpass'],
         sensor=sensor,
         photon_ops_maker=photon_ops_maker,
@@ -216,7 +216,7 @@ def test_wcs_in_runner():
 
     wcs_indices = np.arange(cat.getNObjects())
 
-    image, sky_image, truth = mimsim.runner.run_sim(
+    image, sky_image, truth = montauk.runner.run_sim(
         rng=rng,
         cat=cat,
         obsdata=obsdata,
@@ -231,7 +231,7 @@ def test_wcs_in_runner():
     )
 
     mid = nobj // 2
-    wcs, stats = mimsim.wcs.fit_wcs(
+    wcs, stats = montauk.wcs.fit_wcs(
         x=truth['realized_x'][wcs_indices],
         y=truth['realized_y'][wcs_indices],
         ra=truth['ra'][wcs_indices],

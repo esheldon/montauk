@@ -1,21 +1,21 @@
 import numpy as np
 import galsim
-import mimsim
+import montauk
 
 
 def test_dcr():
 
     detnum = 130
 
-    obsdata = mimsim.simtools.load_example_obsdata(band='g')
+    obsdata = montauk.simtools.load_example_obsdata(band='g')
 
-    dm_detector = mimsim.camera.make_dm_detector(detnum)
+    dm_detector = montauk.camera.make_dm_detector(detnum)
 
-    wcs, icrf_to_field = mimsim.wcs.make_batoid_wcs(
+    wcs, icrf_to_field = montauk.wcs.make_batoid_wcs(
         obsdata=obsdata, dm_detector=dm_detector,
     )
 
-    dcr_maker = mimsim.dcr.DCRMaker(
+    dcr_maker = montauk.dcr.DCRMaker(
         bandpass=obsdata['bandpass'],
         hour_angle=obsdata['HA'],
     )
@@ -27,7 +27,7 @@ def test_dcr():
 
     expected = galsim.PhotonDCR(
         base_wavelength=obsdata['bandpass'].effective_wavelength,
-        latitude=mimsim.utils.get_latitude(),
+        latitude=montauk.utils.get_latitude(),
         HA=obsdata['HA'],
         obj_coord=sky_pos,
     )

@@ -182,8 +182,8 @@ def fit_wcs(x, y, ra, dec, units, itrain, ireserve, order=3):
 #         Ambient pressure in kPa
 #     H2O_pressure : float
 #         Water vapor pressure in kPa
-#     dcr: a mimsim.dcr.DCRMaker
-#         a mimsim.dcr.DCRMaker that can generate dcr at a specified location
+#     dcr: a montauk.dcr.DCRMaker
+#         a montauk.dcr.DCRMaker that can generate dcr at a specified location
 #     """
 #     @ignore_erfa_warnings
 #     def __init__(

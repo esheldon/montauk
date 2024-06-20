@@ -1,21 +1,21 @@
 import galsim
 import imsim
-import mimsim
+import montauk
 import numpy as np
 
 
 def test_vignetting():
 
     detnum = 88
-    dm_detector = mimsim.camera.make_dm_detector(detnum)
+    dm_detector = montauk.camera.make_dm_detector(detnum)
 
-    obsdata = mimsim.simtools.load_example_obsdata()
+    obsdata = montauk.simtools.load_example_obsdata()
 
-    wcs, _ = mimsim.wcs.make_batoid_wcs(
+    wcs, _ = montauk.wcs.make_batoid_wcs(
         obsdata=obsdata, dm_detector=dm_detector,
     )
 
-    vignetter = mimsim.vignetting.Vignetter(dm_detector)
+    vignetter = montauk.vignetting.Vignetter(dm_detector)
     assert isinstance(vignetter.vignetting, imsim.vignetting.Vignetting)
 
     bbox = dm_detector.getBBox()
