@@ -167,6 +167,8 @@ def load_example_instcat(
         obsdata = load_obsdata_from_instcat(fname)
 
         cat = imsim.instcat.InstCatalog(file_name=fname, wcs=wcs)
+        # to force loading data before temporary dir is removed
+        cat.getNObjects()
 
     return cat
 
