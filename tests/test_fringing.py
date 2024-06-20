@@ -1,6 +1,6 @@
 import galsim
-import mimsim
-from mimsim.fringing import should_apply_fringing
+import montauk
+from montauk.fringing import should_apply_fringing
 from imsim.sky_model import CCD_Fringing
 import numpy as np
 import pytest
@@ -10,11 +10,11 @@ import pytest
 @pytest.mark.parametrize('detnum', [35, 88])
 def test_fringing(band, detnum):
 
-    obsdata = mimsim.simtools.load_example_obsdata(band=band)
+    obsdata = montauk.simtools.load_example_obsdata(band=band)
 
-    dm_detector = mimsim.camera.make_dm_detector(detnum)
+    dm_detector = montauk.camera.make_dm_detector(detnum)
 
-    wcs, _ = mimsim.wcs.make_batoid_wcs(
+    wcs, _ = montauk.wcs.make_batoid_wcs(
         obsdata=obsdata, dm_detector=dm_detector,
     )
 
@@ -22,7 +22,7 @@ def test_fringing(band, detnum):
     if serial_number[:3] == 'E2V' and band == 'Y':
         assert should_apply_fringing(band=band, dm_detector=dm_detector)
 
-        fringer = mimsim.fringing.Fringer(
+        fringer = montauk.fringing.Fringer(
             boresight=obsdata['boresight'], dm_detector=dm_detector,
         )
 

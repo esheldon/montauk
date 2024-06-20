@@ -16,7 +16,7 @@ def get_stamp_size(obj, flux, noise_var, obsdata, pixel_scale=PIXEL_SCALE):
     obsdata: dict
         Information about this observation
     pixel_scale: float, optional
-        Pixel scale, default mimsim.defaults.PIXEL_SCALE
+        Pixel scale, default montauk.defaults.PIXEL_SCALE
 
     Returns
     -------

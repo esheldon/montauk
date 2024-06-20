@@ -1,5 +1,5 @@
 import galsim
-import mimsim
+import montauk
 import numpy as np
 import pytest
 
@@ -10,16 +10,16 @@ def test_cosmic_rays(cosmic_ray_rate):
     seed = 1982
 
     detnum = 79
-    dm_detector = mimsim.camera.make_dm_detector(detnum)
-    obsdata = mimsim.simtools.load_example_obsdata()
+    dm_detector = montauk.camera.make_dm_detector(detnum)
+    obsdata = montauk.simtools.load_example_obsdata()
 
-    cosmics = mimsim.cosmic_rays.CosmicRays(
+    cosmics = montauk.cosmic_rays.CosmicRays(
         cosmic_ray_rate=cosmic_ray_rate,
         exptime=obsdata['vistime'],
         gs_rng=galsim.BaseDeviate(seed),
     )
 
-    wcs, _ = mimsim.wcs.make_batoid_wcs(
+    wcs, _ = montauk.wcs.make_batoid_wcs(
         obsdata=obsdata, dm_detector=dm_detector,
     )
 

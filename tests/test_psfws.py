@@ -1,5 +1,5 @@
 import galsim
-import mimsim
+import montauk
 
 
 def test_psfws():
@@ -10,9 +10,9 @@ def test_psfws():
     # default is 800, use 100 for speed
     psf_config = {'screen_size': 100}
 
-    obsdata = mimsim.simtools.load_example_obsdata()
+    obsdata = montauk.simtools.load_example_obsdata()
 
-    psf = mimsim.psfws.make_psfws_psf(
+    psf = montauk.psfws.make_psfws_psf(
         obsdata=obsdata,
         gs_rng=galsim.BaseDeviate(seed),
         psf_config=psf_config,
@@ -35,5 +35,5 @@ def test_psfws():
     expected_psf_at_pos = expected_psf.getPSF(image_pos)
     assert psf_at_pos == expected_psf_at_pos
 
-    eval_psf = mimsim.psf.eval_psf(psf, image_pos)
+    eval_psf = montauk.psf.eval_psf(psf, image_pos)
     assert eval_psf == expected_psf_at_pos

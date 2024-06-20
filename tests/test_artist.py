@@ -1,6 +1,6 @@
 import imsim
 import galsim
-import mimsim
+import montauk
 import pytest
 
 
@@ -11,29 +11,29 @@ def test_artist_smoke(flux):
     gs_rng = galsim.BaseDeviate(seed)
 
     detnum = 91
-    dm_detector = mimsim.camera.make_dm_detector(detnum)
-    obsdata = mimsim.simtools.load_example_obsdata()
+    dm_detector = montauk.camera.make_dm_detector(detnum)
+    obsdata = montauk.simtools.load_example_obsdata()
 
-    wcs, icrf_to_field = mimsim.wcs.make_batoid_wcs(
+    wcs, icrf_to_field = montauk.wcs.make_batoid_wcs(
         obsdata=obsdata, dm_detector=dm_detector,
     )
 
     image_pos = galsim.PositionD(250.1, 1091.3)
     sky_pos = wcs.toWorld(image_pos)
 
-    dcr = mimsim.dcr.DCRMaker(
+    dcr = montauk.dcr.DCRMaker(
         bandpass=obsdata['bandpass'],
         hour_angle=obsdata['HA'],
     )
 
-    tree_rings = mimsim.tree_rings.make_tree_rings([detnum])
-    sensor = mimsim.sensor.make_sensor(
+    tree_rings = montauk.tree_rings.make_tree_rings([detnum])
+    sensor = montauk.sensor.make_sensor(
         dm_detector=dm_detector,
         gs_rng=gs_rng,
         tree_rings=tree_rings,
     )
 
-    optics = mimsim.optics.OpticsMaker(
+    optics = montauk.optics.OpticsMaker(
         altitude=obsdata['altitude'],
         azimuth=obsdata['azimuth'],
         boresight=obsdata['boresight'],
@@ -44,7 +44,7 @@ def test_artist_smoke(flux):
         icrf_to_field=icrf_to_field,
     )
 
-    photon_ops_maker = mimsim.photon_ops.PhotonOpsMaker(
+    photon_ops_maker = montauk.photon_ops.PhotonOpsMaker(
         exptime=obsdata['vistime'],
         band=obsdata['band'],
         dcr=dcr,
@@ -58,7 +58,7 @@ def test_artist_smoke(flux):
         rotTelPos=obsdata['rotTelPos'],
     )
 
-    artist = mimsim.artist.Artist(
+    artist = montauk.artist.Artist(
         bandpass=obsdata['bandpass'],
         sensor=sensor,
         photon_ops_maker=photon_ops_maker,
@@ -68,7 +68,7 @@ def test_artist_smoke(flux):
 
     stamp_size = 32
 
-    obj = galsim.Gaussian(fwhm=0.2) * mimsim.seds.get_trivial_sed()
+    obj = galsim.Gaussian(fwhm=0.2) * montauk.seds.get_trivial_sed()
 
     local_wcs = wcs.local(image_pos)
 

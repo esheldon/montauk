@@ -1,5 +1,5 @@
 import galsim
-import mimsim
+import montauk
 import pytest
 
 
@@ -11,11 +11,11 @@ def test_eval_psf(psf_type):
     # default is 800, use 100 for speed
     psf_config = {'screen_size': 100}
 
-    obsdata = mimsim.simtools.load_example_obsdata()
+    obsdata = montauk.simtools.load_example_obsdata()
     image_pos = galsim.PositionD(25.2, 100.8)
 
     if psf_type == 'psfws':
-        psf = mimsim.psfws.make_psfws_psf(
+        psf = montauk.psfws.make_psfws_psf(
             obsdata=obsdata,
             gs_rng=galsim.BaseDeviate(seed),
             psf_config=psf_config,
@@ -25,5 +25,5 @@ def test_eval_psf(psf_type):
         psf = psf_type(half_light_radius=1)
         expected_psf_at_pos = psf
 
-    psf_at_pos = mimsim.psf.eval_psf(psf, image_pos)
+    psf_at_pos = montauk.psf.eval_psf(psf, image_pos)
     assert psf_at_pos == expected_psf_at_pos
