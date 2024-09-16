@@ -104,6 +104,7 @@ def run_sim(
     nskipped_low_flux = 0
     nskipped_select = 0
     nskipped_bounds = 0
+    nskipped_bright = 0
 
     truth = make_truth(nobj, with_realized_pos=calc_xy_indices is not None)
 
@@ -139,6 +140,7 @@ def run_sim(
         draw_method = get_initial_draw_method(flux)
 
         if draw_method != 'phot' and skip_bright:
+            nskipped_bright += 1
             continue
 
         if draw_method != 'phot':
@@ -156,6 +158,7 @@ def run_sim(
             )
 
         if draw_method != 'phot' and skip_bright:
+            nskipped_bright += 1
             continue
 
         stamp_size = get_stamp_size(
@@ -215,11 +218,14 @@ def run_sim(
         logger.info('adding cosmic rays')
         cosmics.add(image)
 
-    nskipped = nskipped_select + nskipped_low_flux + nskipped_bounds
+    nskipped = (
+        nskipped_select + nskipped_low_flux + nskipped_bounds + nskipped_bright
+    )
     logger.info(f'skipped {nskipped}/{nobj}')
     logger.info(f'skipped {nskipped_low_flux}/{nobj} low flux')
     logger.info(f'skipped {nskipped_select}/{nobj} selector')
     logger.info(f'skipped {nskipped_bounds}/{nobj} bounds')
+    logger.info(f'skipped {nskipped_bright}/{nobj} bright')
 
     return image, sky_image, truth
 
