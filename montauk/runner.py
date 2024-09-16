@@ -14,6 +14,7 @@ def run_sim(
     fringing=None,
     apply_pixel_areas=True,
     calc_xy_indices=None,
+    skip_bright=False,
     selector=lambda d, i: True,
 ):
     """
@@ -57,6 +58,8 @@ def run_sim(
         If sent, objects corresponding to these indices will have their
         realized x,y positions calculated and stored in the truth output as
         realized_x and realized_y
+    skip_bright: bool, optional
+        Skip objects so bright we would use an FFT rather than photon shooting
     selector: function
         A way to select on the catalog, must be callable with
             selector(cat, iobj)
@@ -134,6 +137,10 @@ def run_sim(
         psf_at_pos = eval_psf(psf=psf, image_pos=image_pos)
 
         draw_method = get_initial_draw_method(flux)
+
+        if draw_method != 'phot' and skip_bright:
+            continue
+
         if draw_method != 'phot':
             psf_at_pos, draw_method, fft_flux = get_fft_psf_maybe(
                 obj=obj,
@@ -147,6 +154,9 @@ def run_sim(
                 vignetting=vignetting.vignetting,
                 sky_pos=obj_coord,
             )
+
+        if draw_method != 'phot' and skip_bright:
+            continue
 
         stamp_size = get_stamp_size(
             obj=obj, flux=flux, noise_var=med_noise_var, obsdata=obsdata,
