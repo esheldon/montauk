@@ -14,6 +14,7 @@ def run_sim(
     fringing=None,
     apply_pixel_areas=True,
     calc_xy_indices=None,
+    skip_bright=False,
     selector=lambda d, i: True,
 ):
     """
@@ -57,6 +58,8 @@ def run_sim(
         If sent, objects corresponding to these indices will have their
         realized x,y positions calculated and stored in the truth output as
         realized_x and realized_y
+    skip_bright: bool, optional
+        Skip objects so bright we would use an FFT rather than photon shooting
     selector: function
         A way to select on the catalog, must be callable with
             selector(cat, iobj)
@@ -101,6 +104,7 @@ def run_sim(
     nskipped_low_flux = 0
     nskipped_select = 0
     nskipped_bounds = 0
+    nskipped_bright = 0
 
     truth = make_truth(nobj, with_realized_pos=calc_xy_indices is not None)
 
@@ -134,6 +138,11 @@ def run_sim(
         psf_at_pos = eval_psf(psf=psf, image_pos=image_pos)
 
         draw_method = get_initial_draw_method(flux)
+
+        if draw_method != 'phot' and skip_bright:
+            nskipped_bright += 1
+            continue
+
         if draw_method != 'phot':
             psf_at_pos, draw_method, fft_flux = get_fft_psf_maybe(
                 obj=obj,
@@ -147,6 +156,10 @@ def run_sim(
                 vignetting=vignetting.vignetting,
                 sky_pos=obj_coord,
             )
+
+        if draw_method != 'phot' and skip_bright:
+            nskipped_bright += 1
+            continue
 
         stamp_size = get_stamp_size(
             obj=obj, flux=flux, noise_var=med_noise_var, obsdata=obsdata,
@@ -205,11 +218,14 @@ def run_sim(
         logger.info('adding cosmic rays')
         cosmics.add(image)
 
-    nskipped = nskipped_select + nskipped_low_flux + nskipped_bounds
+    nskipped = (
+        nskipped_select + nskipped_low_flux + nskipped_bounds + nskipped_bright
+    )
     logger.info(f'skipped {nskipped}/{nobj}')
     logger.info(f'skipped {nskipped_low_flux}/{nobj} low flux')
     logger.info(f'skipped {nskipped_select}/{nobj} selector')
     logger.info(f'skipped {nskipped_bounds}/{nobj} bounds')
+    logger.info(f'skipped {nskipped_bright}/{nobj} bright')
 
     return image, sky_image, truth
 
