@@ -68,7 +68,7 @@ def run_sim(
     import numpy as np
     import logging
     import galsim
-    from tqdm import trange
+    from esutil.pbar import prange
     import imsim
     from imsim.psf_utils import get_fft_psf_maybe
     from .sky import make_sky_image
@@ -108,7 +108,7 @@ def run_sim(
 
     truth = make_truth(nobj, with_realized_pos=calc_xy_indices is not None)
 
-    for iobj in trange(nobj):
+    for iobj in prange(nobj):
 
         obj_coord = cat.world_pos[iobj]
         image_pos = cat.image_pos[iobj]
