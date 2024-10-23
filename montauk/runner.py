@@ -68,7 +68,7 @@ def run_sim(
     import numpy as np
     import logging
     import galsim
-    from tqdm import trange
+    from esutil.pbar import prange
     import imsim
     from imsim.psf_utils import get_fft_psf_maybe
     from .sky import make_sky_image
@@ -108,7 +108,7 @@ def run_sim(
 
     truth = make_truth(nobj, with_realized_pos=calc_xy_indices is not None)
 
-    for iobj in trange(nobj):
+    for iobj in prange(nobj):
 
         obj_coord = cat.world_pos[iobj]
         image_pos = cat.image_pos[iobj]
@@ -211,6 +211,11 @@ def run_sim(
         truth['realized_flux'][iobj] = stamp.added_flux
         truth['skipped'][iobj] = False
 
+    # variance contains poisson level from signal
+    # this will itself be noisy. DM does this
+    variance = sky_image.array + image.array
+
+    # add noise from sky, noise from objects already in
     image.array[:, :] += np_rng.poisson(lam=sky_image.array)
 
     # should go in after poisson noise
@@ -227,7 +232,7 @@ def run_sim(
     logger.info(f'skipped {nskipped_bounds}/{nobj} bounds')
     logger.info(f'skipped {nskipped_bright}/{nobj} bright')
 
-    return image, sky_image, truth
+    return image, variance, sky_image, truth
 
 
 def make_truth(nobj, with_realized_pos=False):

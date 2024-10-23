@@ -216,7 +216,7 @@ def test_wcs_in_runner():
 
     wcs_indices = np.arange(cat.getNObjects())
 
-    image, sky_image, truth = montauk.runner.run_sim(
+    image, variance, sky_image, truth = montauk.runner.run_sim(
         rng=rng,
         cat=cat,
         obsdata=obsdata,

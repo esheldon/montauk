@@ -269,7 +269,7 @@ def test_runner(options):
     else:
         cosmics = None
 
-    image, sky_image, truth = montauk.runner.run_sim(
+    image, variance, sky_image, truth = montauk.runner.run_sim(
         rng=rng,
         cat=cat,
         obsdata=obsdata,
@@ -287,6 +287,7 @@ def test_runner(options):
         selector=selector,
     )
     assert image.array.shape == sky_image.array.shape
+    assert variance.shape == sky_image.array.shape
     assert truth.size == cat.getNObjects()
 
     if select:

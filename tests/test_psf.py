@@ -53,7 +53,9 @@ def test_fixed_psf(psf_type):
         )
         expected_psf_at_pos = psf.getPSF(image_pos)
     else:
-        psf = montauk.fixed_psf.make_fixed_psf(type=psf_type, options=psf_options)
+        psf = montauk.fixed_psf.make_fixed_psf(
+            type=psf_type, options=psf_options,
+        )
         expected_psf_at_pos = psf
 
     psf_at_pos = montauk.psf.eval_psf(psf, image_pos)
