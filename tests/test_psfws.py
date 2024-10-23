@@ -20,8 +20,8 @@ def test_psfws():
 
     expected_psf = psfws.simulate_atm_psf.AtmosphericPSF(
         rng=galsim.BaseDeviate(seed),
-        alt=obsdata['altitude'].deg,
-        az=obsdata['azimuth'].deg,
+        alt=obsdata['altitude'],
+        az=obsdata['azimuth'],
         band=obsdata['band'],
         boresight=obsdata['boresight'],
         rawSeeing=obsdata['rawSeeing'],
