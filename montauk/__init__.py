@@ -12,6 +12,7 @@ from . import stamps
 from . import seds
 from . import psf
 from . import psfws
+from . import imsim_atmpsf
 from . import fixed_psf
 from . import optics
 from . import dcr

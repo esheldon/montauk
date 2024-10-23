@@ -21,8 +21,11 @@ def make_psfws_psf(obsdata, gs_rng, psf_config={}):
 
     return psfws.simulate_atm_psf.AtmosphericPSF(
         rng=gs_rng,
-        alt=obsdata['altitude'].deg,
-        az=obsdata['azimuth'].deg,
+        # alt=obsdata['altitude'].deg,
+        # az=obsdata['azimuth'].deg,
+        # new psfws wants units
+        alt=obsdata['altitude'],
+        az=obsdata['azimuth'],
         band=obsdata['band'],
         boresight=obsdata['boresight'],
         rawSeeing=obsdata['rawSeeing'],
