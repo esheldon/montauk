@@ -5,6 +5,7 @@ def run_sim(
     artist,
     psf,
     wcs,
+    boresight,
     sky_model,
     sensor,
     dm_detector,
@@ -112,6 +113,10 @@ def run_sim(
 
         obj_coord = cat.world_pos[iobj]
         image_pos = cat.image_pos[iobj]
+        # A position in pixel units, but relative to the boresight rather than
+        # within the CCD.  This is only used by the PSF, which is defined over the
+        # whole exposure
+        pointing_pos = wcs.posToWorld(image_pos, project_center=boresight)
 
         truth['x'][iobj] = image_pos.x
         truth['y'][iobj] = image_pos.y
@@ -135,7 +140,8 @@ def run_sim(
             prof=obj, bandpass=obsdata['bandpass'], logger=logger,
         )
 
-        psf_at_pos = eval_psf(psf=psf, image_pos=image_pos)
+        # psf_at_pos = eval_psf(psf=psf, image_pos=image_pos)
+        psf_at_pos = eval_psf(psf=psf, image_pos=pointing_pos)
 
         draw_method = get_initial_draw_method(flux)
 
